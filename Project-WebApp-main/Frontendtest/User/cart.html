@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="cupcake">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cart</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="min-h-screen bg-[#f7f4ee]">
+  <div class="navbar bg-[#efe5d7]/95 border-b border-[#d8ccb9] px-3 lg:px-8 shadow-sm">
+    <div class="flex-1"><a class="text-2xl font-extrabold text-orange-600">Your Cart</a></div>
+    <div class="flex-none gap-2">
+      <a href="customer-dashboard.html" class="btn rounded-full bg-white border border-[#d8ccb9] text-[#6d2f1d]">Back</a>
+      <button onclick="logoutCustomer()" class="btn btn-outline btn-error rounded-full">Logout</button>
+    </div>
+  </div>
+
+  <main class="max-w-5xl mx-auto p-4 lg:p-8 space-y-6">
+    <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
+      <div class="card-body">
+        <h1 class="text-3xl font-extrabold text-[#3d241a]">Cart Items</h1>
+        <div class="overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr><th>Item</th><th>Qty</th><th>Price</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Chicken Rice Bowl</td><td>2</td><td>$158</td></tr>
+              <tr><td>Iced Cola</td><td>1</td><td>$35</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="text-right text-xl font-bold text-orange-600">Total: $193</div>
+        <div class="card-actions justify-end">
+          <a href="payment.html" class="btn rounded-full bg-orange-600 hover:bg-orange-700 text-white border-0">Go to Payment</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../app.js"></script>
+  <script>
+    requireCustomer();
+    setCustomerHeader();
+  </script>
+</body>
+</html>

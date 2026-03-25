@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="cupcake">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="min-h-screen bg-[#f7f4ee]">
+  <div class="navbar bg-[#efe5d7]/95 border-b border-[#d8ccb9] px-3 lg:px-8 shadow-sm">
+    <div class="flex-1"><a class="text-2xl font-extrabold text-orange-600">Payment</a></div>
+    <div class="flex-none gap-2">
+      <a href="cart.html" class="btn rounded-full bg-white border border-[#d8ccb9] text-[#6d2f1d]">Back</a>
+      <button onclick="logoutCustomer()" class="btn btn-outline btn-error rounded-full">Logout</button>
+    </div>
+  </div>
+
+  <main class="max-w-4xl mx-auto p-4 lg:p-8">
+    <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
+      <div class="card-body space-y-4">
+        <h1 class="text-3xl font-extrabold text-[#3d241a]">Payment Summary</h1>
+        <p>Total: <span class="font-bold text-orange-600">$193</span></p>
+        <select class="select w-full border-[#d8ccb9]">
+          <option>Cash</option>
+          <option>Card</option>
+          <option>QR Payment</option>
+        </select>
+        <div class="card-actions justify-end">
+          <a href="my-orders.html" class="btn rounded-full bg-orange-600 hover:bg-orange-700 text-white border-0">Confirm Payment</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../app.js"></script>
+  <script>
+    requireCustomer();
+  </script>
+</body>
+</html>

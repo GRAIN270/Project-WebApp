@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="cupcake">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cook Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="min-h-screen bg-[#f7f4ee] text-base-content">
+  <div class="navbar sticky top-0 z-50 bg-[#efe5d7]/95 backdrop-blur border-b border-[#d8ccb9] px-3 lg:px-8 min-h-16 shadow-sm">
+    <div class="flex-1 items-center gap-3">
+      <button class="btn btn-ghost btn-circle text-xl">☰</button>
+      <a class="text-2xl lg:text-3xl font-extrabold tracking-tight text-orange-600">Foodie House Cook</a>
+    </div>
+    <div class="flex-none gap-2">
+      <span id="cookBadge" class="badge bg-orange-100 text-orange-700 border-0 hidden sm:inline-flex"></span>
+      <button onclick="logoutStaff()" class="btn btn-outline btn-error rounded-full">Logout</button>
+    </div>
+  </div>
+
+  <div class="w-full px-3 lg:px-8 py-5 space-y-8">
+    <section class="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-[1.3fr_0.7fr] gap-6">
+      <div class="card bg-gradient-to-r from-[#6d2f1d] to-orange-600 text-white shadow-xl rounded-[2rem]">
+        <div class="card-body p-6 lg:p-8">
+          <p class="uppercase tracking-[0.3em] text-sm text-amber-200">Kitchen Panel</p>
+          <h1 class="text-3xl md:text-5xl font-extrabold">Manage orders fast</h1>
+          <p class="text-white/85 max-w-2xl mt-3">View incoming orders, update cooking status, and keep the kitchen running smoothly.</p>
+          <div class="mt-4">
+            <a href="Order_cook.html" class="btn rounded-full bg-white text-[#6d2f1d] border-0">View Orders</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
+          <div class="card-body p-5">
+            <p class="text-sm text-[#6d2f1d]/60">Pending</p>
+            <h2 class="text-3xl font-extrabold text-orange-600">8</h2>
+          </div>
+        </div>
+
+        <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
+          <div class="card-body p-5">
+            <p class="text-sm text-[#6d2f1d]/60">Serving</p>
+            <h2 class="text-3xl font-extrabold text-orange-600">4</h2>
+          </div>
+        </div>
+
+        <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem] col-span-2">
+          <div class="card-body p-5">
+            <p class="text-sm text-[#6d2f1d]/60">Today completed</p>
+            <h2 class="text-3xl font-extrabold text-orange-600">27 orders</h2>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="../app.js"></script>
+  <script>
+    requireStaff("cook");
+    setCookHeader();
+  </script>
+</body>
+</html>

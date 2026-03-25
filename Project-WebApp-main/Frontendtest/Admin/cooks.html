@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="cupcake">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cooks</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <style>
+    :root {
+      --fh-orange: #ea580c;
+      --fh-orange-hover: #c2410c;
+      --fh-brown: #6d2f1d;
+    }
+
+    .btn-primary {
+      background-color: var(--fh-orange) !important;
+      border-color: var(--fh-orange) !important;
+      color: #fff !important;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--fh-orange-hover) !important;
+      border-color: var(--fh-orange-hover) !important;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-[#f7f4ee] text-base-content">
+  <div class="drawer lg:drawer-open">
+    <input id="admin-drawer" type="checkbox" class="drawer-toggle" />
+
+    <!-- MAIN -->
+    <div class="drawer-content flex flex-col min-h-screen">
+
+      <!-- NAVBAR -->
+      <div class="navbar sticky top-0 z-50 bg-[#efe5d7]/95 backdrop-blur border-b border-[#d8ccb9] px-3 lg:px-8 min-h-16 shadow-sm">
+        <div class="flex-none lg:hidden">
+          <label for="admin-drawer" class="btn btn-ghost btn-circle">☰</label>
+        </div>
+
+        <div class="flex-1 items-center gap-3">
+          <a href="./dashboard_Admin.html" class="text-2xl lg:text-3xl font-extrabold tracking-tight text-orange-600">
+            Foodie House Admin
+          </a>
+          <span class="ml-2 text-sm text-base-content/60">/ Cooks</span>
+        </div>
+
+        <div class="flex-none">
+          <button onclick="logoutStaff()" class="btn btn-outline btn-error rounded-full">
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <main class="p-4 lg:p-8 flex-1">
+        <div class="max-w-7xl mx-auto space-y-6">
+
+          <div class="flex justify-between items-center flex-wrap gap-3">
+            <div>
+              <h1 class="text-3xl font-extrabold text-[#3d241a]">Cooks</h1>
+              <p class="text-[#6d2f1d]/70 mt-2">Manage kitchen staff accounts and work status</p>
+            </div>
+
+            <button id="btn-add" class="btn btn-primary rounded-full">
+              + Add Cook
+            </button>
+          </div>
+
+          <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
+            <div class="card-body p-0">
+              <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Name</th>
+                      <th>Shift</th>
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="cooks"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="drawer-side">
+      <label for="admin-drawer" class="drawer-overlay"></label>
+      <aside class="min-h-full w-72 bg-[#efe5d7] border-r border-[#d8ccb9] p-4">
+        <div class="text-2xl font-extrabold text-orange-600 mb-6">Admin Panel</div>
+
+        <ul class="menu gap-2">
+          <li><a href="./dashboard_Admin.html" class="rounded-2xl">Dashboard</a></li>
+          <li><a href="./menu-items.html" class="rounded-2xl">Menu Management</a></li>
+          <li><a href="./orders.html" class="rounded-2xl">Orders</a></li>
+          <li><a href="./payments.html" class="rounded-2xl">Payments</a></li>
+          <li><a href="./reviews.html" class="rounded-2xl">Reviews</a></li>
+          <li><a href="./profile.html" class="rounded-2xl">Profile</a></li>
+          <li><a href="./attendance.html" class="rounded-2xl">Attendance</a></li>
+          <li><a href="./cooks.html" class="rounded-2xl bg-white shadow-sm">Cooks</a></li>
+        </ul>
+      </aside>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <dialog id="modal" class="modal">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg">Add Cook</h3>
+
+      <div class="space-y-3 mt-3">
+        <input id="cook-name" class="input input-bordered w-full" placeholder="Name" />
+        <select id="cook-shift" class="select select-bordered w-full">
+          <option>Morning</option>
+          <option>Afternoon</option>
+          <option>Night</option>
+        </select>
+      </div>
+
+      <div class="modal-action">
+        <button class="btn" onclick="document.getElementById('modal').close()">Cancel</button>
+        <button class="btn btn-primary" id="save-cook">Save</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="../app.js"></script>
+  <script>
+    requireStaff("admin");
+    setupAdminSidebar();
+
+    function badge(status) {
+      if (status === "Active") {
+        return `<span class="badge bg-green-100 text-green-700 border-0">Active</span>`;
+      }
+      return `<span class="badge bg-amber-100 text-amber-700 border-0">Inactive</span>`;
+    }
+
+    const data = [
+      { code: "CK-01", name: "Kan", shift: "Morning", status: "Active" },
+      { code: "CK-02", name: "May", shift: "Afternoon", status: "Active" },
+      { code: "CK-03", name: "Non", shift: "Night", status: "Inactive" }
+    ];
+
+    function render() {
+      document.getElementById("cooks").innerHTML = data.map(c => `
+        <tr>
+          <td class="font-mono">${c.code}</td>
+          <td>${c.name}</td>
+          <td>${c.shift}</td>
+          <td>${badge(c.status)}</td>
+          <td class="text-right">
+            <button class="btn btn-xs btn-ghost">Edit</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function generateCookCode() {
+      const next = data.length + 1;
+      return `CK-${String(next).padStart(2, "0")}`;
+    }
+
+    document.getElementById("btn-add").onclick = () => {
+      document.getElementById("cook-name").value = "";
+      document.getElementById("cook-shift").value = "Morning";
+      document.getElementById("modal").showModal();
+    };
+
+    document.getElementById("save-cook").onclick = () => {
+      const name = document.getElementById("cook-name").value.trim();
+      const shift = document.getElementById("cook-shift").value;
+
+      if (!name) {
+        alert("Please enter cook name");
+        return;
+      }
+
+      data.push({
+        code: generateCookCode(),
+        name,
+        shift,
+        status: "Active"
+      });
+
+      render();
+      document.getElementById("modal").close();
+    };
+
+    render();
+  </script>
+</body>
+</html>

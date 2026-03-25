@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="cupcake">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Attendance</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="min-h-screen bg-[#f7f4ee] text-base-content">
+  <div class="drawer lg:drawer-open">
+    <input id="admin-drawer" type="checkbox" class="drawer-toggle" />
+
+    <div class="drawer-content flex flex-col">
+      <div class="navbar bg-[#efe5d7]/95 border-b border-[#d8ccb9] shadow-sm px-3 lg:px-8">
+        <div class="flex-none lg:hidden">
+          <label for="admin-drawer" class="btn btn-ghost btn-circle">☰</label>
+        </div>
+
+        <div class="flex-1">
+          <a class="text-2xl font-extrabold text-orange-600">Attendance</a>
+        </div>
+
+        <div class="flex-none">
+          <button onclick="logoutStaff()" class="btn btn-outline btn-error rounded-full">
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <main class="p-4 lg:p-8 space-y-6">
+        <div>
+          <h1 class="text-3xl font-extrabold text-[#3d241a]">Staff Attendance</h1>
+          <p class="text-[#6d2f1d]/70 mt-2">Track staff check-in and attendance status.</p>
+        </div>
+
+        <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
+          <div class="overflow-x-auto">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Staff</th>
+                  <th>Role</th>
+                  <th>Check In</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>cook01</td>
+                  <td>Cook</td>
+                  <td>08:55</td>
+                  <td><span class="badge bg-green-100 text-green-700 border-0">Present</span></td>
+                </tr>
+                <tr>
+                  <td>cook02</td>
+                  <td>Cook</td>
+                  <td>09:10</td>
+                  <td><span class="badge bg-amber-100 text-amber-700 border-0">Late</span></td>
+                </tr>
+                <tr>
+                  <td>admin01</td>
+                  <td>Admin</td>
+                  <td>08:45</td>
+                  <td><span class="badge bg-green-100 text-green-700 border-0">Present</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="drawer-side">
+      <label for="admin-drawer" class="drawer-overlay"></label>
+      <aside class="min-h-full w-72 bg-[#efe5d7] border-r border-[#d8ccb9] p-4">
+        <div class="text-2xl font-extrabold text-orange-600 mb-6">Admin Panel</div>
+
+        <ul class="menu gap-2">
+          <li><a href="dashboard_Admin.html" class="rounded-2xl">Dashboard</a></li>
+          <li><a href="menu-items.html" class="rounded-2xl">Menu Management</a></li>
+          <li><a href="orders.html" class="rounded-2xl">Orders</a></li>
+          <li><a href="payments.html" class="rounded-2xl">Payments</a></li>
+          <li><a href="reviews.html" class="rounded-2xl">Reviews</a></li>
+          <li><a href="profile.html" class="rounded-2xl">Profile</a></li>
+          <li><a href="attendance.html" class="rounded-2xl bg-white shadow-sm">Attendance</a></li>
+          <li><a href="cooks.html" class="rounded-2xl">Cooks</a></li>
+        </ul>
+      </aside>
+    </div>
+  </div>
+
+  <script src="../app.js"></script>
+  <script>
+    requireStaff("admin");
+    setupAdminSidebar();
+  </script>
+</body>
+</html>
