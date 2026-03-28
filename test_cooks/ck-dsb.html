@@ -9,18 +9,17 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 
-<body class="min-h-screen flex flex-col bg-[#f7f4ee] text-base-content">
+<body class="min-h-screen flex flex-col bg-base-200 text-base-content">
 
     <!-- Navbar -->
-    <div
-        class="navbar sticky top-0 z-50 bg-[#efe5d7]/95 backdrop-blur border-b border-[#d8ccb9] px-3 lg:px-8 min-h-16 shadow-sm">
+    <div class="navbar sticky top-0 z-50 bg-[#efe5d7]/95 backdrop-blur border-b border-[#d8ccb9] px-3 lg:px-8 min-h-16 shadow-sm">
         <div class="flex-1 items-center gap-3">
             <button class="btn btn-ghost btn-circle text-xl">☰</button>
             <a class="text-2xl lg:text-3xl font-extrabold tracking-tight text-orange-600">Foodie House Cook</a>
         </div>
         <div class="flex-none gap-2">
-            <span id="cookBadge" class="badge bg-orange-100 text-orange-700 border-0 hidden sm:inline-flex"></span>
-            <button onclick="logoutStaff()" class="btn btn-outline btn-error rounded-full">Logout</button>
+            <span id="cookBadge" class="badge badge-warning hidden sm:inline-flex"></span>
+            <button onclick="logoutStaff()" class="btn btn-sm btn-error rounded-full">Logout</button>
         </div>
     </div>
 
@@ -29,43 +28,33 @@
 
         <!-- Hero + Stats -->
         <section class="grid grid-cols-1 xl:grid-cols-[1.3fr_0.7fr] gap-6">
-            <div class="card bg-gradient-to-r from-[#6d2f1d] to-orange-600 text-white shadow-xl rounded-[2rem]">
+            <div class="card bg-gradient-to-r from-orange-900 to-orange-600 text-white shadow-xl rounded-3xl">
                 <div class="card-body p-6 lg:p-8">
-                    <p class="uppercase tracking-[0.3em] text-sm text-amber-200">Kitchen Panel</p>
+                    <p class="uppercase tracking-widest text-sm text-amber-200">Kitchen Panel</p>
                     <h1 class="text-3xl md:text-5xl font-extrabold">Manage orders fast</h1>
-                    <p class="text-white/85 max-w-2xl mt-3">View incoming orders, update cooking status, and keep the
-                        kitchen running smoothly.</p>
-                    <div class="mt-4">
-                        <a href="/Project-WebApp/test_cooks/ck-od.html" class="btn bg-white text-[#6d2f1d] border-0 rounded-full">View Orders</a>
+                    <p class="text-white/80 max-w-2xl mt-3">View incoming orders, update cooking status, and keep the kitchen running smoothly.</p>
+                    <div class="mt-5">
+                        <a href="/Project-WebApp/test_cooks/ck-od.html" class="btn bg-white text-orange-900 border-0 rounded-full">View Orders</a>
                     </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
-                <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
+                <div class="card bg-base-100 border border-base-300 shadow-sm rounded-3xl">
                     <div class="card-body p-5">
-                        <p class="text-sm text-[#6d2f1d]/60">Pending</p>
+                        <p class="text-sm text-base-content/60">Pending</p>
                         <h2 id="pendingCount" class="text-3xl font-extrabold text-orange-600">0</h2>
                     </div>
                 </div>
-
-                <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
+                <div class="card bg-base-100 border border-base-300 shadow-sm rounded-3xl">
                     <div class="card-body p-5">
-                        <p class="text-sm text-[#6d2f1d]/60">Cooking</p>
+                        <p class="text-sm text-base-content/60">Cooking</p>
                         <h2 id="cookingCount" class="text-3xl font-extrabold text-orange-600">0</h2>
                     </div>
                 </div>
-
-                <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
+                <div class="card bg-base-100 border border-base-300 shadow-sm rounded-3xl col-span-2">
                     <div class="card-body p-5">
-                        <p class="text-sm text-[#6d2f1d]/60">Serving</p>
-                        <h2 id="servingCount" class="text-3xl font-extrabold text-orange-600">0</h2>
-                    </div>
-                </div>
-
-                <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
-                    <div class="card-body p-5">
-                        <p class="text-sm text-[#6d2f1d]/60">Today Completed</p>
+                        <p class="text-sm text-base-content/60">Today Completed</p>
                         <h2 id="completedCount" class="text-3xl font-extrabold text-orange-600">0</h2>
                     </div>
                 </div>
@@ -73,26 +62,29 @@
         </section>
 
         <!-- Top Menu -->
-        <div class="card bg-white shadow">
-            <div class="card-body">
-                <p class="text-sm opacity-60">Top Menu</p>
-                <h2 id="topMenu" class="text-2xl font-bold text-orange-600">-</h2>
+        <div class="card bg-base-100 border border-base-300 shadow-sm rounded-3xl">
+            <div class="card-body p-5">
+                <p class="text-sm text-base-content/60">Top Menu</p>
+                <h2 id="topMenu" class="text-2xl font-extrabold text-orange-600 truncate">-</h2>
             </div>
         </div>
 
         <!-- User Reviews -->
-        <div class="card bg-white shadow">
+        <div class="card bg-base-100 border border-base-300 shadow-sm rounded-3xl">
+            <div class="card-body p-5 pb-2">
+                <p class="text-sm text-base-content/60 mb-2">Customer Reviews</p>
+            </div>
             <div class="overflow-x-auto">
-                <table class="table">
+                <table class="table table-sm">
                     <thead>
-                        <tr>
+                        <tr class="text-base-content/50 text-xs uppercase tracking-wide">
                             <th>Customer</th>
                             <th>Menu</th>
                             <th>Rating</th>
                             <th>Comment</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="text-sm">
                         <tr>
                             <td>Table A01</td>
                             <td>Chicken Rice Bowl</td>
@@ -120,11 +112,9 @@
 
     <script>
         function setCookHeader() {
-            document.getElementById("cookBadge").innerText = "Cook ID: C001";
-        }
-
-        function logout() {
-            alert("Logged out");
+            const badge = document.getElementById("cookBadge");
+            badge.innerText = "Cook ID: C001";
+            badge.classList.remove("hidden");
         }
 
         function loadOrders() {
@@ -133,94 +123,24 @@
 
         function updateDashboard() {
             const orders = loadOrders();
+            
+            document.getElementById("pendingCount").innerText   = orders.filter(o => o.status === "Pending").length;
+            document.getElementById("cookingCount").innerText   = orders.filter(o => o.status === "Cooking").length;
+            document.getElementById("completedCount").innerText = orders.filter(o => o.status === "Completed").length;
 
-            const pending = orders.filter(o => o.status === "Pending").length;
-            const cooking = orders.filter(o => o.status === "Cooking").length;
-            const serving = orders.filter(o => o.status === "Serving").length;
-
-            const today = new Date().toDateString();
-            const completed = orders.filter(o =>
-                o.status === "Serving" &&
-                new Date(o.createdAt).toDateString() === today
-            ).length;
-
-            document.getElementById("pendingCount").innerText = pending;
-            document.getElementById("cookingCount").innerText = cooking;
-            document.getElementById("servingCount").innerText = serving;
-            document.getElementById("completedCount").innerText = completed;
-        }
-
-        function calculateTopMenu() {
-            const orders = loadOrders();
-            const count = {};
-
-            orders.forEach(o => {
-                (o.items || []).forEach(i => {
-                    count[i.name] = (count[i.name] || 0) + i.qty;
-                });
-            });
-
-            let top = "-";
-            let max = 0;
-
-            for (let item in count) {
-                if (count[item] > max) {
-                    max = count[item];
-                    top = item;
-                }
-            }
-
+            const menuCount = {};
+            orders.filter(o => o.status !== "Cancelled").forEach(o =>
+                (o.items || []).forEach(i => { menuCount[i.name] = (menuCount[i.name] || 0) + i.qty; })
+            );
+            let top = "-", max = 0;
+            for (let item in menuCount) { if (menuCount[item] > max) { max = menuCount[item]; top = item; } }
             document.getElementById("topMenu").innerText = top;
         }
 
-        function seedData() {
-            if (!localStorage.getItem("orders")) {
-                const sample = [
-                    {
-                        id: 1001,
-                        table: "A01",
-                        status: "Pending",
-                        createdAt: new Date().toISOString(),
-                        items: [
-                            { name: "Chicken Rice Bowl", qty: 2 },
-                            { name: "Cola", qty: 1 }
-                        ]
-                    },
-                    {
-                        id: 1002,
-                        table: "B02",
-                        status: "Cooking",
-                        createdAt: new Date().toISOString(),
-                        items: [
-                            { name: "Burger", qty: 1 }
-                        ]
-                    },
-                    {
-                        id: 1003,
-                        table: "C03",
-                        status: "Serving",
-                        createdAt: new Date().toISOString(),
-                        items: [
-                            { name: "Fried Rice", qty: 3 }
-                        ]
-                    }
-                ];
-
-                localStorage.setItem("orders", JSON.stringify(sample));
-            }
-        }
-
-        setInterval(() => {
-            updateDashboard();
-            calculateTopMenu();
-        }, 3000);
-
-        seedData();
+        setInterval(updateDashboard, 3000);
         setCookHeader();
         updateDashboard();
-        calculateTopMenu();
     </script>
 
 </body>
-
 </html>

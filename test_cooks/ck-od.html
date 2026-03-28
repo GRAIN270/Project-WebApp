@@ -5,36 +5,35 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Test Cook Orders</title>
-
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 
-<body class="min-h-screen bg-[#f7f4ee] text-base-content">
+<body class="min-h-screen bg-base-200 text-base-content">
 
     <!-- Navbar -->
-    <div class="navbar bg-[#efe5d7]/95 border-b border-[#d8ccb9] shadow-sm px-3 lg:px-8">
+    <div class="navbar sticky top-0 z-50 bg-[#efe5d7]/95 backdrop-blur border-b border-[#d8ccb9] shadow-sm px-3 lg:px-8">
         <div class="flex-1">
             <a class="text-2xl font-extrabold text-orange-600">Cook Orders</a>
         </div>
         <div class="flex-none gap-2">
-            <a href="/Project-WebApp/test_cooks/ck-dsb.html" class="btn rounded-full bg-white border border-[#d8ccb9] text-[#6d2f1d]">Back</a>
-            <button onclick="logoutStaff()" class="btn btn-outline btn-error rounded-full">Logout</button>
+            <a href="/Project-WebApp/test_cooks/ck-dsb.html" class="btn btn-sm btn-outline rounded-full">Back</a>
+            <button onclick="logoutStaff()" class="btn btn-sm btn-error rounded-full">Logout</button>
         </div>
     </div>
 
-    <!-- Dashboard -->
-    <div class="p-4">
+    <!-- Stats -->
+    <div class="max-w-7xl mx-auto px-4 pt-5 pb-2">
         <div class="grid grid-cols-2 gap-4">
-            <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
+            <div class="card bg-base-100 border border-base-300 shadow-sm rounded-3xl">
                 <div class="card-body p-5">
-                    <p class="text-sm text-[#6d2f1d]/60">Served Orders</p>
-                    <h2 id="servedCount" class="text-3xl font-extrabold text-orange-600">0</h2>
+                    <p class="text-sm text-base-content/60">Today Completed</p>
+                    <h2 id="completedCount" class="text-3xl font-extrabold text-orange-600">0</h2>
                 </div>
             </div>
-            <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
+            <div class="card bg-base-100 border border-base-300 shadow-sm rounded-3xl">
                 <div class="card-body p-5">
-                    <p class="text-sm text-[#6d2f1d]/60">Top Menu</p>
+                    <p class="text-sm text-base-content/60">Top Menu</p>
                     <h2 id="topMenu" class="text-xl font-extrabold text-orange-600 truncate">-</h2>
                 </div>
             </div>
@@ -42,145 +41,156 @@
     </div>
 
     <!-- Filter -->
-    <div class="px-4 pb-4 flex gap-2">
-        <button class="btn btn-sm" onclick="filterOrders('all')">All</button>
-        <button class="btn btn-sm" onclick="filterOrders('Pending')">Pending</button>
-        <button class="btn btn-sm" onclick="filterOrders('Cooking')">Cooking</button>
-        <button class="btn btn-sm" onclick="filterOrders('Serving')">Serving</button>
+    <div class="max-w-7xl mx-auto px-4 py-3 flex gap-2 flex-wrap">
+        <button id="filter-all"       class="btn btn-sm rounded-full bg-orange-600 text-white border-0"               onclick="filterOrders('all')">All</button>
+        <button id="filter-Pending"   class="btn btn-sm rounded-full bg-white border border-[#d8ccb9] text-[#3d241a]" onclick="filterOrders('Pending')">Pending</button>
+        <button id="filter-Cooking"   class="btn btn-sm rounded-full bg-white border border-[#d8ccb9] text-[#3d241a]" onclick="filterOrders('Cooking')">Cooking</button>
+        <button id="filter-Completed" class="btn btn-sm rounded-full bg-white border border-[#d8ccb9] text-[#3d241a]" onclick="filterOrders('Completed')">Completed</button>
+        <button id="filter-Cancelled" class="btn btn-sm rounded-full bg-white border border-[#d8ccb9] text-[#3d241a]" onclick="filterOrders('Cancelled')">Cancelled</button>
     </div>
 
     <!-- Orders -->
-    <main class="max-w-7xl mx-auto p-4">
-        <div id="orders" class="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
+    <main class="max-w-7xl mx-auto px-4 pb-8">
+        <div id="orders" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+        <p id="emptyMsg" class="hidden text-center text-base-content/40 mt-16 text-sm">No orders found.</p>
     </main>
 
     <script>
-        // ===== MOCK DATA =====
-        let orders = [
-            {
-                id: 1001,
-                table: "A01",
-                status: "Pending",
-                createdAt: "2026-03-26T10:00:00",
-                items: [
-                    { name: "Chicken Rice Bowl", qty: 2 },
-                    { name: "Iced Cola", qty: 1 }
-                ]
-            },
-            {
-                id: 1002,
-                table: "B03",
-                status: "Cooking",
-                createdAt: "2026-03-26T10:05:00",
-                items: [
-                    { name: "BBQ Bacon Burger", qty: 1 },
-                    { name: "French Fries", qty: 1 }
-                ]
+        // ===== SEED =====
+        function seedData() {
+            if (!localStorage.getItem("orders")) {
+                const now = new Date();
+                const ts = (m) => new Date(now - m * 60000).toISOString();
+                localStorage.setItem("orders", JSON.stringify([
+                    { id: 1001, table: "A01", status: "Pending",   createdAt: ts(18), items: [{ name: "Chicken Rice Bowl", qty: 2 }, { name: "Iced Cola", qty: 1 }] },
+                    { id: 1002, table: "B03", status: "Cooking",   createdAt: ts(12), items: [{ name: "BBQ Bacon Burger", qty: 1 }, { name: "French Fries", qty: 1 }] },
+                    { id: 1003, table: "C02", status: "Completed", createdAt: ts(5),  items: [{ name: "Fried Rice", qty: 3 }] },
+                ]));
             }
-        ];
+        }
+
+        function loadOrders() { return JSON.parse(localStorage.getItem("orders")) || []; }
+        function saveOrders(o) { localStorage.setItem("orders", JSON.stringify(o)); }
 
         let currentFilter = "all";
+        let undoStack = {}; // { orderId: previousStatus }
 
         // ===== RENDER =====
         function renderOrders() {
+            const orders = loadOrders();
             const container = document.getElementById("orders");
+            const emptyMsg  = document.getElementById("emptyMsg");
             container.innerHTML = "";
 
-            let filtered = orders;
-
-            if (currentFilter !== "all") {
-                filtered = orders.filter(o => o.status === currentFilter);
-            }
-
-            // sort by time
+            let filtered = currentFilter === "all" ? [...orders] : orders.filter(o => o.status === currentFilter);
             filtered.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            emptyMsg.classList.toggle("hidden", filtered.length > 0);
 
             filtered.forEach(order => {
-                const itemsHTML = order.items.map(i =>
-                    `<div class="flex justify-between"><span>${i.name}</span><span>x${i.qty}</span></div>`
-                ).join("");
+                const itemsHTML = order.items.map(i => `
+                    <div class="flex justify-between text-sm py-1 border-b border-base-200 last:border-0">
+                        <span>${i.name}</span>
+                        <span class="text-base-content/50 font-medium">x${i.qty}</span>
+                    </div>`).join("");
+
+                const d = new Date(order.createdAt);
+                const timeStr = d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+                const dateStr = d.toLocaleDateString("th-TH", { day: "numeric", month: "short" });
+
+                const badgeMap = {
+                    "Pending":   `<span class="badge badge-sm badge-warning">Pending</span>`,
+                    "Cooking":   `<span class="badge badge-sm badge-warning text-orange-700 bg-orange-100 border-0">Cooking</span>`,
+                    "Completed": `<span class="badge badge-sm badge-success">Completed</span>`,
+                    "Cancelled": `<span class="badge badge-sm badge-error">Cancelled</span>`,
+                };
+                const statusBadge = badgeMap[order.status] || `<span class="badge badge-sm">${order.status}</span>`;
+
+                const isDone = order.status === "Completed" || order.status === "Cancelled";
+                const btns = isDone
+                    ? `<button class="btn btn-sm rounded-full btn-outline" onclick="undoStatus(${order.id})">Undo</button>`
+                    : `<button class="btn btn-sm rounded-full btn-warning text-white"
+                            onclick="updateStatus(${order.id}, 'Cooking')">Cooking</button>
+                        <button class="btn btn-sm rounded-full btn-success text-white"
+                            onclick="updateStatus(${order.id}, 'Completed')">Completed</button>
+                        <button class="btn btn-sm rounded-full btn-error"
+                            onclick="updateStatus(${order.id}, 'Cancelled')">Cancel</button>`;
 
                 container.innerHTML += `
-        <div class="card bg-white shadow rounded-xl">
-            <div class="card-body">
-            <div class="flex justify-between">
-                <div>
-                <h3 class="font-bold">Order #${order.id}</h3>
-                <p class="text-sm opacity-60">Table ${order.table}</p>
-                </div>
-                <span class="badge">${order.status}</span>
-            </div>
-
-            <div class="mt-2">${itemsHTML}</div>
-
-            <div class="card-actions justify-end mt-3">
-                ${order.status !== "Cooking" ? `
-                <button class="btn btn-sm btn-warning rounded-full"
-                    onclick="updateStatus(${order.id}, 'Cooking')">Cooking</button>` : ""}
-
-                ${order.status !== "Serving" ? `
-                <button class="btn btn-sm btn-success rounded-full"
-                    onclick="updateStatus(${order.id}, 'Serving')">Serving</button>` : ""}
-            </div>
-            </div>
-        </div>
-        `;
+                <div class="card bg-base-100 border border-base-300 shadow-sm rounded-3xl">
+                    <div class="card-body p-5">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <h3 class="font-bold">Order #${order.id}</h3>
+                                <p class="text-sm text-base-content/50">Table ${order.table}</p>
+                            </div>
+                            <div class="flex flex-col items-end gap-1 shrink-0">
+                                ${statusBadge}
+                                <span class="text-xs text-base-content/35">${dateStr} · ${timeStr}</span>
+                            </div>
+                        </div>
+                        <div class="mt-3 rounded-xl bg-base-200 px-3 py-1">${itemsHTML}</div>
+                        <div class="card-actions justify-end mt-4 gap-2">${btns}</div>
+                    </div>
+                </div>`;
             });
 
-            updateDashboard();
+            updateStats(orders);
         }
 
         // ===== UPDATE STATUS =====
         function updateStatus(id, status) {
+            const orders = loadOrders();
             const order = orders.find(o => o.id === id);
-            if (order) {
-                order.status = status;
-                renderOrders();
+            if (!order) return;
+            if (status === "Completed" || status === "Cancelled") {
+                undoStack[id] = order.status;
             }
+            order.status = status;
+            saveOrders(orders);
+            renderOrders();
+        }
+
+        // ===== UNDO =====
+        function undoStatus(id) {
+            const orders = loadOrders();
+            const order = orders.find(o => o.id === id);
+            if (!order) return;
+            order.status = undoStack[id] || "Pending";
+            saveOrders(orders);
+            delete undoStack[id];
+            renderOrders();
         }
 
         // ===== FILTER =====
         function filterOrders(status) {
             currentFilter = status;
+            document.querySelectorAll("[id^='filter-']").forEach(b => {
+                b.className = "btn btn-sm rounded-full bg-white border border-[#d8ccb9] text-[#3d241a]";
+            });
+            const id = status === "all" ? "filter-all" : `filter-${status}`;
+            const btn = document.getElementById(id);
+            if (btn) btn.className = "btn btn-sm rounded-full bg-orange-600 text-white border-0";
             renderOrders();
         }
 
-        // ===== DASHBOARD =====
-        function updateDashboard() {
-            const served = orders.filter(o => o.status === "Serving").length;
-            document.getElementById("servedCount").innerText = served;
+        // ===== STATS =====
+        function updateStats(orders) {
+            const completed = orders.filter(o => o.status === "Completed").length;
+            document.getElementById("completedCount").innerText = completed;
 
             const menuCount = {};
-            orders.forEach(o => {
-                o.items.forEach(i => {
-                    menuCount[i.name] = (menuCount[i.name] || 0) + i.qty;
-                });
-            });
-
-            let top = "-";
-            let max = 0;
-            for (let item in menuCount) {
-                if (menuCount[item] > max) {
-                    max = menuCount[item];
-                    top = item;
-                }
-            }
-
+            orders.filter(o => o.status !== "Cancelled").forEach(o =>
+                o.items.forEach(i => { menuCount[i.name] = (menuCount[i.name] || 0) + i.qty; })
+            );
+            let top = "-", max = 0;
+            for (let item in menuCount) { if (menuCount[item] > max) { max = menuCount[item]; top = item; } }
             document.getElementById("topMenu").innerText = top;
         }
 
-        // ===== AUTH MOCK =====
-        function logout() {
-            alert("Logged out");
-        }
-
-        // ===== AUTO REFRESH =====
         setInterval(renderOrders, 5000);
-
-        // ===== INIT =====
+        seedData();
         renderOrders();
     </script>
 
 </body>
-
 </html>
