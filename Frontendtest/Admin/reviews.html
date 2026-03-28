@@ -61,6 +61,26 @@
     requireStaff("admin");
     setupAdminSidebar();
     document.getElementById("admin-sidebar").innerHTML = adminSidebar("reviews.html");
+
+    function renderReviews() {
+      const reviews = getReviews();
+      const tbody = document.querySelector("tbody");
+      
+      // คำนวณ Stats
+      const avgRating = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : 0;
+      document.querySelector("h2.text-4xl").textContent = avgRating;
+      document.querySelectorAll("h2.text-4xl")[1].textContent = reviews.length;
+
+      tbody.innerHTML = reviews.map(r => `
+        <tr>
+          <td class="font-bold">${r.customer}</td>
+          <td>${r.menu}</td>
+          <td class="text-orange-500">${'⭐'.repeat(r.rating)}</td>
+          <td class="italic text-gray-600">"${r.comment}"</td>
+        </tr>
+      `).join("");
+    }
+    renderReviews();
   </script>
 </body>
 </html>

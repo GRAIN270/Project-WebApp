@@ -94,6 +94,26 @@
   <script>
     requireStaff("admin");
     setupAdminSidebar();
+    document.getElementById("admin-sidebar").innerHTML = adminSidebar("attendance.html");
+
+    function renderAttendance() {
+      const list = getAttendance();
+      const tbody = document.querySelector("tbody");
+      
+      tbody.innerHTML = list.map(a => `
+        <tr>
+          <td class="font-bold">${a.staffId}</td>
+          <td>${a.role}</td>
+          <td>${a.time}</td>
+          <td>
+            <span class="badge ${a.status === 'Present' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} border-0">
+              ${a.status}
+            </span>
+          </td>
+        </tr>
+      `).join("");
+    }
+    renderAttendance();
   </script>
 </body>
 </html>
