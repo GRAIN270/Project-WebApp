@@ -150,8 +150,16 @@ function adminSidebar(currentPage) {
 }
 
 // ===== LocalStorage =====
-function getOrders(){return JSON.parse(localStorage.getItem("orders")||"[]")}
-function saveOrders(o){localStorage.setItem("orders",JSON.stringify(o))}
+function getOrders() {
+  const defaultOrders = [
+    { id: "1001", tableId: "A01", status: "PENDING", time: new Date().toISOString(), total: 45 },
+    { id: "1002", tableId: "B03", status: "DONE", time: new Date(Date.now() - 3600000).toISOString(), total: 132 },
+    { id: "1003", tableId: "C02", status: "COOKING", time: new Date(Date.now() - 1800000).toISOString(), total: 89 }
+  ];
+  return JSON.parse(localStorage.getItem("orders")) || defaultOrders;
+}
+
+function saveOrders(o) { localStorage.setItem("orders", JSON.stringify(o)); }
 function statusBadge(status){
   if(status==="PENDING") return "bg-amber-100 text-amber-700 border-0";
   if(status==="COOKING") return "bg-orange-100 text-orange-700 border-0";
