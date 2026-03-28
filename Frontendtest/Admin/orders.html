@@ -3,64 +3,75 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orders</title>
+  <title>All Orders</title>
+
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <style>
+    :root {
+      --fh-orange: #ea580c;
+      --fh-orange-hover: #c2410c;
+      --fh-brown: #6d2f1d;
+    }
+  </style>
 </head>
+
 <body class="min-h-screen bg-[#f7f4ee] text-base-content">
   <div class="drawer lg:drawer-open">
     <input id="admin-drawer" type="checkbox" class="drawer-toggle" />
 
-    <div class="drawer-content flex flex-col">
-      <div class="navbar bg-[#efe5d7]/95 border-b border-[#d8ccb9] shadow-sm px-3 lg:px-8">
-        <div class="flex-none lg:hidden"><label for="admin-drawer" class="btn btn-ghost btn-circle">☰</label></div>
-        <div class="flex-1"><a class="text-2xl font-extrabold text-orange-600">Orders</a></div>
-        <div class="flex-none"><button onclick="logoutStaff()" class="btn btn-outline btn-error rounded-full">Logout</button></div>
-      </div>
+    <div class="drawer-content flex flex-col min-h-screen">
 
-      <main class="p-4 lg:p-8 space-y-6">
-        <div>
-          <h1 class="text-3xl font-extrabold text-[#3d241a]">All Orders</h1>
-          <p class="text-[#6d2f1d]/70 mt-2">View and manage all customer orders.</p>
+      <div class="navbar sticky top-0 z-50 bg-[#efe5d7]/95 backdrop-blur border-b border-[#d8ccb9] px-3 lg:px-8 min-h-16 shadow-sm">
+        <div class="flex-none lg:hidden">
+          <label for="admin-drawer" class="btn btn-ghost btn-circle">☰</label>
         </div>
 
-        <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
-          <div class="overflow-x-auto">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Table</th>
-                  <th>Status</th>
-                  <th>Total</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>#1001</td>
-                  <td>A01</td>
-                  <td><span class="badge bg-amber-100 text-amber-700 border-0">Pending</span></td>
-                  <td>$45</td>
-                  <td><a href="order-detail.html" class="btn btn-xs rounded-full bg-orange-600 text-white border-0">View</a></td>
-                </tr>
-                <tr>
-                  <td>#1002</td>
-                  <td>B03</td>
-                  <td><span class="badge bg-orange-100 text-orange-700 border-0">Cooking</span></td>
-                  <td>$32</td>
-                  <td><a href="order-detail.html" class="btn btn-xs rounded-full bg-orange-600 text-white border-0">View</a></td>
-                </tr>
-                <tr>
-                  <td>#1003</td>
-                  <td>C02</td>
-                  <td><span class="badge bg-green-100 text-green-700 border-0">Served</span></td>
-                  <td>$28</td>
-                  <td><a href="order-detail.html" class="btn btn-xs rounded-full bg-orange-600 text-white border-0">View</a></td>
-                </tr>
-              </tbody>
-            </table>
+        <div class="flex-1 items-center gap-3">
+          <a href="./dashboard_Admin.html" class="text-2xl lg:text-3xl font-extrabold tracking-tight text-orange-600">
+            Foodie House Admin
+          </a>
+          <span class="ml-2 text-sm text-base-content/60">/ Orders</span>
+        </div>
+
+        <div class="flex-none">
+          <button onclick="logoutStaff()" class="btn btn-outline btn-error rounded-full">
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <main class="p-4 lg:p-8 flex-1">
+        <div class="max-w-7xl mx-auto space-y-6">
+
+          <div class="flex justify-between items-center flex-wrap gap-3">
+            <div>
+              <h1 class="text-3xl font-extrabold text-[#3d241a]">All Orders</h1>
+              <p class="text-[#6d2f1d]/70 mt-2">View all customer orders across the system</p>
+            </div>
           </div>
+
+          <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
+            <div class="card-body p-0">
+              <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                  <thead>
+                    <tr>
+                      <th>Order ID</th>
+                      <th>Time</th>
+                      <th>Table</th>
+                      <th>Status</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="orders-tbody">
+                    </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
         </div>
       </main>
     </div>
@@ -79,6 +90,36 @@
     requireStaff("admin");
     setupAdminSidebar();
     document.getElementById("admin-sidebar").innerHTML = adminSidebar("orders.html");
+
+    function renderOrders() {
+      let orders = getOrders();
+      const tbody = document.getElementById("orders-tbody");
+      
+      if (!tbody) return;
+
+      if (!orders || orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center opacity-50 py-4">No orders found.</td></tr>`;
+        return;
+      }
+
+      orders.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+      tbody.innerHTML = orders.map(o => {
+        const orderTime = o.time ? new Date(o.time).toLocaleString() : 'N/A';
+        
+        return `
+          <tr>
+            <td class="font-bold text-orange-600">#${o.id}</td>
+            <td class="text-sm">${orderTime}</td>
+            <td>${o.tableId || 'Unknown'}</td>
+            <td><span class="badge ${statusBadge(o.status)}">${o.status}</span></td>
+            <td class="font-bold text-[#3d241a]">$${o.total || 0}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    renderOrders();
   </script>
 </body>
 </html>

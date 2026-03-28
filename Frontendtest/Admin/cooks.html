@@ -32,10 +32,8 @@
   <div class="drawer lg:drawer-open">
     <input id="admin-drawer" type="checkbox" class="drawer-toggle" />
 
-    <!-- MAIN -->
     <div class="drawer-content flex flex-col min-h-screen">
 
-      <!-- NAVBAR -->
       <div class="navbar sticky top-0 z-50 bg-[#efe5d7]/95 backdrop-blur border-b border-[#d8ccb9] px-3 lg:px-8 min-h-16 shadow-sm">
         <div class="flex-none lg:hidden">
           <label for="admin-drawer" class="btn btn-ghost btn-circle">☰</label>
@@ -55,7 +53,6 @@
         </div>
       </div>
 
-      <!-- CONTENT -->
       <main class="p-4 lg:p-8 flex-1">
         <div class="max-w-7xl mx-auto space-y-6">
 
@@ -93,7 +90,6 @@
       </main>
     </div>
 
-    <!-- SIDEBAR -->
     <div class="drawer-side">
       <label for="admin-drawer" class="drawer-overlay"></label>
       <aside class="min-h-full w-72 bg-[#efe5d7] border-r border-[#d8ccb9] p-4">
@@ -107,16 +103,15 @@
           <li><a href="./reviews.html" class="rounded-2xl">Reviews</a></li>
           <li><a href="./profile.html" class="rounded-2xl">Profile</a></li>
           <li><a href="./attendance.html" class="rounded-2xl">Attendance</a></li>
-          <li><a href="./cooks.html" class="rounded-2xl bg-white shadow-sm">Cooks</a></li>
+          <li><a href="./cooks.html" class="rounded-2xl bg-white shadow-sm font-bold text-orange-600">Cooks</a></li>
         </ul>
       </aside>
     </div>
   </div>
 
-  <!-- MODAL -->
   <dialog id="modal" class="modal">
     <div class="modal-box">
-      <h3 class="font-bold text-lg">Add Cook</h3>
+      <h3 class="font-bold text-lg" id="modal-title">Add Cook</h3>
 
       <div class="space-y-3 mt-3">
         <input id="cook-name" class="input input-bordered w-full" placeholder="Name" />
@@ -139,6 +134,9 @@
     requireStaff("admin");
     setupAdminSidebar();
 
+    let cooks = getCooks();
+    let editingCookId = null;
+
     function badge(status) {
       if (status === "Active") {
         return `<span class="badge bg-green-100 text-green-700 border-0">Active</span>`;
@@ -146,36 +144,57 @@
       return `<span class="badge bg-amber-100 text-amber-700 border-0">Inactive</span>`;
     }
 
-    const data = [
-      { code: "CK-01", name: "Kan", shift: "Morning", status: "Active" },
-      { code: "CK-02", name: "May", shift: "Afternoon", status: "Active" },
-      { code: "CK-03", name: "Non", shift: "Night", status: "Inactive" }
-    ];
+    function renderCooks() {
+      const tbody = document.getElementById("cooks");
+      if (!tbody) return;
+      
+      if (!cooks || cooks.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center opacity-50 py-4">No cooks found.</td></tr>`;
+        return;
+      }
 
-    function render() {
-      document.getElementById("cooks").innerHTML = data.map(c => `
+      tbody.innerHTML = cooks.map(c => `
         <tr>
-          <td class="font-mono">${c.code}</td>
+          <td class="font-mono">${c.id}</td>
           <td>${c.name}</td>
           <td>${c.shift}</td>
           <td>${badge(c.status)}</td>
-          <td class="text-right">
-            <button class="btn btn-xs btn-ghost">Edit</button>
+          <td class="flex justify-end gap-2">
+            <button onclick="toggleCookStatus('${c.id}')" class="btn btn-xs ${c.status === 'Active' ? 'btn-error' : 'btn-success'} text-white rounded-full">
+              ${c.status === 'Active' ? 'Disable' : 'Enable'}
+            </button>
+            <button onclick="openEditCook('${c.id}')" class="btn btn-xs btn-outline rounded-full">Edit</button>
           </td>
         </tr>
       `).join("");
     }
 
-    function generateCookCode() {
-      const next = data.length + 1;
-      return `CK-${String(next).padStart(2, "0")}`;
+    window.toggleCookStatus = function(id) {
+      const cook = cooks.find(c => c.id === id);
+      if (cook) {
+        cook.status = cook.status === "Active" ? "Inactive" : "Active";
+        saveCooks(cooks);
+        renderCooks();
+      }
     }
 
     document.getElementById("btn-add").onclick = () => {
+      editingCookId = null;
       document.getElementById("cook-name").value = "";
       document.getElementById("cook-shift").value = "Morning";
+      document.getElementById("modal-title").textContent = "Add Cook";
       document.getElementById("modal").showModal();
     };
+
+    window.openEditCook = function(id) {
+      const cook = cooks.find(c => c.id === id);
+      if (!cook) return;
+      editingCookId = id;
+      document.getElementById("cook-name").value = cook.name;
+      document.getElementById("cook-shift").value = cook.shift;
+      document.getElementById("modal-title").textContent = "Edit Cook";
+      document.getElementById("modal").showModal();
+    }
 
     document.getElementById("save-cook").onclick = () => {
       const name = document.getElementById("cook-name").value.trim();
@@ -186,18 +205,23 @@
         return;
       }
 
-      data.push({
-        code: generateCookCode(),
-        name,
-        shift,
-        status: "Active"
-      });
-
-      render();
+      if (editingCookId) {
+        const cook = cooks.find(c => c.id === editingCookId);
+        if(cook) {
+          cook.name = name;
+          cook.shift = shift;
+        }
+      } else {
+        const nextId = cooks.length > 0 ? Math.max(...cooks.map(c => parseInt(c.id.replace("CK-", "")))) + 1 : 1;
+        cooks.push({ id: `CK-${String(nextId).padStart(2, "0")}`, name, shift, status: "Active" });
+      }
+      
+      saveCooks(cooks);
+      renderCooks();
       document.getElementById("modal").close();
     };
 
-    render();
+    renderCooks();
   </script>
 </body>
 </html>

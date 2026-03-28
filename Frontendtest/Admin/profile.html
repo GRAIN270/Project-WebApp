@@ -63,10 +63,48 @@
   </div>
 
   <script src="../app.js"></script>
+  <script src="../app.js"></script>
   <script>
-    requireStaff("admin");
+    const session = requireStaff("admin"); 
     setupAdminSidebar();
     document.getElementById("admin-sidebar").innerHTML = adminSidebar("profile.html");
+
+    function loadProfile() {
+      const profile = JSON.parse(localStorage.getItem("admin_profile")) || {
+        name: "Admin User",
+        email: "admin@foodiehouse.com",
+        phone: "+66 81 234 5678",
+        role: "Administrator"
+      };
+
+      document.querySelectorAll("input")[0].value = profile.name;
+      document.querySelectorAll("input")[1].value = profile.email;
+      document.querySelectorAll("input")[2].value = profile.role;
+      document.querySelectorAll("input")[3].value = profile.phone;
+      
+      document.querySelector("h2").textContent = profile.name;
+    }
+
+    document.querySelector(".card-actions button").onclick = function() {
+      const updatedProfile = {
+        name: document.querySelectorAll("input")[0].value.trim(),
+        email: document.querySelectorAll("input")[1].value.trim(),
+        role: document.querySelectorAll("input")[2].value.trim(),
+        phone: document.querySelectorAll("input")[3].value.trim()
+      };
+
+      if (!updatedProfile.name || !updatedProfile.email) {
+        alert("Please fill in Name and Email.");
+        return;
+      }
+
+      localStorage.setItem("admin_profile", JSON.stringify(updatedProfile));
+
+      document.querySelector("h2").textContent = updatedProfile.name;
+      alert("Profile updated successfully!");
+    };
+
+    loadProfile();
   </script>
 </body>
 </html>
