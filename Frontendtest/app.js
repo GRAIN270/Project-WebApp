@@ -189,32 +189,3 @@ function getReviews() {
   return JSON.parse(localStorage.getItem("admin_reviews")) || [];
 }
 function saveReviews(data) { localStorage.setItem("admin_reviews", JSON.stringify(data)); }
-
-// ===== เพิ่มเติมฐานข้อมูลจำลองสำหรับส่วนที่เหลือ =====
-
-function getPayments() {
-  const defaultPayments = [
-    { id: "PAY-001", orderId: "1001", method: "Cash", amount: 45, status: "Paid" },
-    { id: "PAY-002", orderId: "1002", method: "PromptPay", amount: 132, status: "Paid" },
-    { id: "PAY-003", orderId: "1003", method: "QR Code", amount: 89, status: "Pending" }
-  ];
-  return JSON.parse(localStorage.getItem("admin_payments")) || defaultPayments;
-}
-function savePayments(data) { localStorage.setItem("admin_payments", JSON.stringify(data)); }
-
-function getReviews() {
-  const defaultReviews = [
-    { customer: "Table A01", menu: "Whopper Style Burger", rating: 5, comment: "อร่อยมากครับ เนื้อฉ่ำสุดๆ" },
-    { customer: "Table B03", menu: "Chicken Rice Bowl", rating: 4, comment: "ไก่นุ่มดี แต่ข้าวแอบแข็งไปนิด" }
-  ];
-  return JSON.parse(localStorage.getItem("admin_reviews")) || defaultReviews;
-}
-
-function getAttendance() {
-  const defaultAttendance = [
-    { staffId: "cook01", role: "Cook", time: "08:55", status: "Present" },
-    { staffId: "cook02", role: "Cook", time: "09:10", status: "Late" },
-    { staffId: "admin01", role: "Admin", time: "08:45", status: "Present" }
-  ];
-  return JSON.parse(localStorage.getItem("admin_attendance")) || defaultAttendance;
-}

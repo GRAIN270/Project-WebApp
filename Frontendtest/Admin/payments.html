@@ -55,26 +55,6 @@
     requireStaff("admin");
     setupAdminSidebar();
     document.getElementById("admin-sidebar").innerHTML = adminSidebar("payments.html");
-
-    function renderPayments() {
-      const payments = getPayments();
-      const tbody = document.querySelector("tbody");
-      
-      tbody.innerHTML = payments.map(p => `
-        <tr>
-          <td class="font-mono text-orange-600">${p.id}</td>
-          <td>#${p.orderId}</td>
-          <td>${p.method}</td>
-          <td class="font-bold">$${p.amount}</td>
-          <td>
-            <span class="badge ${p.status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} border-0">
-              ${p.status}
-            </span>
-          </td>
-        </tr>
-      `).join("");
-    }
-    renderPayments();
   </script>
 </body>
 </html>
