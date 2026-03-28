@@ -3,94 +3,110 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard</title>
+  <title>Foodie House - Admin Dashboard</title>
+
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <style>
+    :root { 
+      --fh-orange: #ea580c; 
+      --fh-brown: #6d2f1d; 
+    }
+  </style>
 </head>
+
 <body class="min-h-screen bg-[#f7f4ee] text-base-content">
   <div class="drawer lg:drawer-open">
     <input id="admin-drawer" type="checkbox" class="drawer-toggle" />
 
-    <div class="drawer-content flex flex-col">
-      <div class="navbar bg-[#efe5d7]/95 border-b border-[#d8ccb9] shadow-sm px-3 lg:px-8">
+    <div class="drawer-content flex flex-col min-h-screen">
+      <div class="navbar sticky top-0 z-50 bg-[#efe5d7]/95 backdrop-blur border-b border-[#d8ccb9] px-3 lg:px-8 shadow-sm">
         <div class="flex-none lg:hidden">
           <label for="admin-drawer" class="btn btn-ghost btn-circle">☰</label>
         </div>
-        <div class="flex-1">
-          <a class="text-2xl lg:text-3xl font-extrabold tracking-tight text-orange-600">Foodie House Admin</a>
+        <div class="flex-1 items-center gap-3">
+          <a href="./dashboard_Admin.html" class="text-2xl lg:text-3xl font-extrabold tracking-tight text-orange-600">
+            Foodie House Admin
+          </a>
+          <span class="ml-2 text-sm text-base-content/60">/ Dashboard</span>
         </div>
         <div class="flex-none">
           <button onclick="logoutStaff()" class="btn btn-outline btn-error rounded-full">Logout</button>
         </div>
       </div>
 
-      <main class="p-4 lg:p-8 space-y-6">
-        <div>
-          <h1 class="text-3xl md:text-4xl font-extrabold text-[#3d241a]">Dashboard Overview</h1>
-          <p class="text-[#6d2f1d]/70 mt-2">Manage orders, menus, and restaurant operations.</p>
-        </div>
+      <main class="p-4 lg:p-8 flex-1">
+        <div class="max-w-7xl mx-auto space-y-6">
+          
+          <div class="flex justify-between items-end flex-wrap gap-4">
+            <div>
+              <h1 class="text-3xl font-extrabold text-[#3d241a]">Dashboard Overview</h1>
+              <p class="text-[#6d2f1d]/70 mt-2">Track your restaurant's performance and orders</p>
+            </div>
+            
+            <div class="flex gap-2 items-center bg-white p-3 rounded-2xl shadow-sm border border-[#e6dac8]">
+              <span class="text-sm font-bold text-[#6d2f1d] ml-1">Filter Date:</span>
+              <input type="date" id="filter-date" class="input input-bordered input-sm rounded-lg" />
+              <button id="btn-filter" class="btn btn-sm bg-orange-600 text-white border-0 hover:bg-orange-700 rounded-lg">Apply</button>
+              <button id="btn-clear" class="btn btn-sm btn-ghost rounded-lg">Clear</button>
+            </div>
+          </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
-            <div class="card-body">
-              <p class="text-sm text-[#6d2f1d]/60">Total Orders</p>
-              <h2 class="text-4xl font-extrabold text-orange-600">128</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="card bg-white border border-[#e6dac8] shadow-sm rounded-[1.5rem]">
+              <div class="card-body p-6">
+                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Total Revenue</h2>
+                <p id="total-sales" class="text-4xl font-extrabold text-green-600 mt-2">$0</p>
+                <p class="text-xs text-gray-400 mt-2 date-label">All time</p>
+              </div>
+            </div>
+            <div class="card bg-white border border-[#e6dac8] shadow-sm rounded-[1.5rem]">
+              <div class="card-body p-6">
+                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Total Orders</h2>
+                <p id="total-orders" class="text-4xl font-extrabold text-blue-600 mt-2">0</p>
+                <p class="text-xs text-gray-400 mt-2 date-label">All time</p>
+              </div>
+            </div>
+            <div class="card bg-white border border-[#e6dac8] shadow-sm rounded-[1.5rem]">
+              <div class="card-body p-6">
+                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Pending</h2>
+                <p id="pending-orders" class="text-4xl font-extrabold text-amber-500 mt-2">0</p>
+                <p class="text-xs text-gray-400 mt-2 date-label">All time</p>
+              </div>
+            </div>
+            <div class="card bg-white border border-[#e6dac8] shadow-sm rounded-[1.5rem]">
+              <div class="card-body p-6">
+                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Completed</h2>
+                <p id="completed-orders" class="text-4xl font-extrabold text-teal-600 mt-2">0</p>
+                <p class="text-xs text-gray-400 mt-2 date-label">All time</p>
+              </div>
             </div>
           </div>
-          <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
-            <div class="card-body">
-              <p class="text-sm text-[#6d2f1d]/60">Revenue</p>
-              <h2 class="text-4xl font-extrabold text-orange-600">$2,490</h2>
-            </div>
-          </div>
-          <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
-            <div class="card-body">
-              <p class="text-sm text-[#6d2f1d]/60">Active Staff</p>
-              <h2 class="text-4xl font-extrabold text-orange-600">12</h2>
-            </div>
-          </div>
-        </div>
 
-        <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
-          <div class="card-body">
-            <div class="flex items-center justify-between mb-2">
-              <h2 class="card-title text-[#3d241a] text-2xl">Recent Orders</h2>
-              <a href="orders.html" class="btn btn-sm rounded-full bg-orange-600 hover:bg-orange-700 text-white border-0">View All</a>
-            </div>
-
-            <div class="overflow-x-auto">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Status</th>
-                    <th>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>#1001</td>
-                    <td>Table A01</td>
-                    <td><span class="badge bg-orange-100 text-orange-700 border-0">Preparing</span></td>
-                    <td>$45</td>
-                  </tr>
-                  <tr>
-                    <td>#1002</td>
-                    <td>Table B03</td>
-                    <td><span class="badge bg-green-100 text-green-700 border-0">Served</span></td>
-                    <td>$32</td>
-                  </tr>
-                  <tr>
-                    <td>#1003</td>
-                    <td>Table C02</td>
-                    <td><span class="badge bg-amber-100 text-amber-700 border-0">Pending</span></td>
-                    <td>$28</td>
-                  </tr>
-                </tbody>
-              </table>
+          <div class="mt-8">
+            <h2 class="text-xl font-extrabold text-[#3d241a] mb-4">Recent Orders</h2>
+            <div class="card bg-white border border-[#e6dac8] shadow-sm rounded-[1.75rem]">
+              <div class="card-body p-0">
+                <div class="overflow-x-auto">
+                  <table class="table table-zebra table-lg w-full">
+                    <thead>
+                      <tr class="bg-gray-50/50">
+                        <th class="pl-8">Order ID</th>
+                        <th>Time</th>
+                        <th>Table</th>
+                        <th>Status</th>
+                        <th class="pr-8 text-right">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody id="recent-orders-tbody">
+                      </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
+
         </div>
       </main>
     </div>
@@ -108,7 +124,69 @@
   <script>
     requireStaff("admin");
     setupAdminSidebar();
+    
     document.getElementById("admin-sidebar").innerHTML = adminSidebar("dashboard_Admin.html");
+
+    function updateDashboard(filterDate = null) {
+      const orders = getOrders() || [];
+      let filteredOrders = orders;
+
+      if (filterDate) {
+        filteredOrders = orders.filter(o => {
+          if (!o.time) return false;
+          return o.time.split('T')[0] === filterDate;
+        });
+        document.querySelectorAll(".date-label").forEach(el => el.textContent = `Date: ${filterDate}`);
+      } else {
+        document.querySelectorAll(".date-label").forEach(el => el.textContent = "All time");
+      }
+
+      const totalSales = filteredOrders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
+      const totalOrders = filteredOrders.length;
+      const pendingOrders = filteredOrders.filter(o => o.status === 'PENDING').length;
+      const completedOrders = filteredOrders.filter(o => ['DONE', 'SERVED'].includes(o.status)).length;
+
+      document.getElementById("total-sales").textContent = "$" + totalSales;
+      document.getElementById("total-orders").textContent = totalOrders;
+      document.getElementById("pending-orders").textContent = pendingOrders;
+      document.getElementById("completed-orders").textContent = completedOrders;
+
+      const tbody = document.getElementById("recent-orders-tbody");
+      if (!tbody) return;
+      
+      if (filteredOrders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center opacity-50 py-8">No orders found.</td></tr>';
+        return;
+      }
+
+      const recent = [...filteredOrders].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 5);
+
+      tbody.innerHTML = recent.map(o => {
+        const timeStr = o.time ? new Date(o.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A';
+        return `
+          <tr>
+            <td class="pl-8 font-bold text-orange-600">#${o.id}</td>
+            <td class="text-sm text-gray-500">${timeStr}</td>
+            <td class="font-medium">${o.tableId || '-'}</td>
+            <td><span class="badge ${statusBadge(o.status)} border-0">${o.status}</span></td>
+            <td class="pr-8 text-right font-bold text-[#3d241a]">$${o.total || 0}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    document.getElementById("btn-filter").onclick = () => {
+      const dateVal = document.getElementById("filter-date").value;
+      if (!dateVal) return alert("Please select a date first.");
+      updateDashboard(dateVal);
+    };
+
+    document.getElementById("btn-clear").onclick = () => {
+      document.getElementById("filter-date").value = "";
+      updateDashboard(null);
+    };
+
+    updateDashboard(null);
   </script>
 </body>
 </html>
