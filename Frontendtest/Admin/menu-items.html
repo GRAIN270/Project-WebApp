@@ -46,11 +46,12 @@
                 <table class="table table-zebra w-full">
                   <thead>
                     <tr>
+                      <th class="pl-8">Image</th>
                       <th>Name</th>
                       <th>Category</th>
                       <th>Price</th>
                       <th>Status</th>
-                      <th class="text-right">Actions</th>
+                      <th class="text-right pr-8">Actions</th>
                     </tr>
                   </thead>
                   <tbody id="menu-tbody"></tbody>
@@ -74,7 +75,16 @@
   <dialog id="menu-modal" class="modal">
     <div class="modal-box">
       <h3 class="font-bold text-lg" id="modal-title">Add New Item</h3>
-      <div class="space-y-3 mt-3">
+      <div class="space-y-4 mt-4">
+        <div class="flex flex-col items-center gap-2">
+          <div class="avatar">
+            <div class="w-24 h-24 rounded-xl ring ring-orange-100">
+              <img id="img-preview" src="https://placehold.co/100x100?text=No+Image" />
+            </div>
+          </div>
+          <input type="file" id="menu-image" accept="image/*" class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
+        </div>
+
         <input id="menu-name" class="input input-bordered w-full" placeholder="Menu Name (e.g. Burger)" />
         <select id="menu-category" class="select select-bordered w-full">
           <option>Rice Dishes</option>
@@ -100,17 +110,37 @@
 
     let menus = getMenus();
     let editingMenuId = null;
+    let currentImageBase64 = "";
+
+    document.getElementById("menu-image").onchange = function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          currentImageBase64 = event.target.result;
+          document.getElementById("img-preview").src = currentImageBase64;
+        };
+        reader.readAsDataURL(file);
+      }
+    };
 
     function renderMenus() {
       const tbody = document.getElementById("menu-tbody");
       if (!tbody) return;
       if (!menus || menus.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center opacity-50 py-4">No menu items found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center opacity-50 py-4">No menu items found.</td></tr>';
         return;
       }
 
       tbody.innerHTML = menus.map(m => `
         <tr>
+          <td class="pl-8">
+            <div class="avatar">
+              <div class="mask mask-squircle w-12 h-12">
+                <img src="${m.image || 'https://placehold.co/100x100?text=Food'}" alt="${m.name}" />
+              </div>
+            </div>
+          </td>
           <td class="font-bold">${m.name}</td>
           <td><span class="badge badge-ghost">${m.category}</span></td>
           <td>$${m.price}</td>
@@ -119,7 +149,7 @@
               ${m.status}
             </span>
           </td>
-          <td class="flex justify-end gap-2">
+          <td class="flex justify-end gap-2 pr-8 mt-3">
             <button onclick="toggleMenuStatus('${m.id}')" class="btn btn-xs rounded-full ${m.status === 'Active' ? 'btn-warning' : 'btn-success'} text-white border-0">
               ${m.status === 'Active' ? 'Disable' : 'Enable'}
             </button>
@@ -136,18 +166,26 @@
       const nameInput = document.getElementById("menu-name");
       const catInput = document.getElementById("menu-category");
       const priceInput = document.getElementById("menu-price");
+      const preview = document.getElementById("img-preview");
+      const fileInput = document.getElementById("menu-image");
 
+      fileInput.value = ""; 
+      
       if (id) {
         const menu = menus.find(m => m.id === id);
         title.textContent = "Edit Menu Item";
         nameInput.value = menu.name;
         catInput.value = menu.category;
         priceInput.value = menu.price;
+        currentImageBase64 = menu.image || "";
+        preview.src = menu.image || "https://placehold.co/100x100?text=No+Image";
       } else {
         title.textContent = "Add New Item";
         nameInput.value = "";
         catInput.value = "Rice Dishes";
         priceInput.value = "";
+        currentImageBase64 = "";
+        preview.src = "https://placehold.co/100x100?text=No+Image";
       }
       document.getElementById("menu-modal").showModal();
     }
@@ -168,12 +206,15 @@
             menu.name = name;
             menu.category = category;
             menu.price = price;
+            menu.image = currentImageBase64; 
         }
       } else {
         const nextId = menus.length > 0 ? Math.max(...menus.map(m => parseInt(m.id.replace("M-", "")))) + 1 : 1;
         menus.push({
           id: `M-${String(nextId).padStart(2, "0")}`,
-          name, category, price, status: "Active"
+          name, category, price, 
+          status: "Active",
+          image: currentImageBase64 
         });
       }
 
