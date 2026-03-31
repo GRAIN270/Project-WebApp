@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="cupcake">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    :root{--fh-bg:#f7f4ee;--fh-soft:#efe5d7;--fh-soft-2:#f3eadc;--fh-line:#d8ccb9;--fh-line-2:#e6dac8;--fh-brown:#6d2f1d;--fh-brown-2:#3d241a;--fh-orange:#ea580c;--fh-orange-2:#c2410c}
+    body{background:var(--fh-bg);color:var(--fh-brown-2)}
+    .fh-top{background:#efe5d7f2;border-bottom:1px solid var(--fh-line);backdrop-filter:blur(10px)}
+    .fh-soft{background:var(--fh-soft-2);border:1px solid #e3d7c5;border-radius:1.5rem}
+    .fh-input{background:#fff;border:1px solid var(--fh-line);border-radius:9999px}
+    .fh-outline{background:#fff!important;border:1px solid #c8b39b!important;color:var(--fh-brown)!important;border-radius:9999px}
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="navbar sticky top-0 z-50 px-4 lg:px-8 min-h-16 fh-top">
+    <div class="flex-1 text-2xl lg:text-3xl font-extrabold text-orange-600">Foodie House</div>
+    <div class="hidden md:flex flex-1 max-w-xl">
+      <label class="input w-full fh-input shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input id="search1" class="grow" placeholder="Search menu...">
+      </label>
+    </div>
+    <div class="flex-none gap-2">
+      <a href="cart.html" class="btn btn-ghost btn-circle hover:bg-orange-100">
+        <div class="indicator">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#6d2f1d]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m1.6 8L5.4 5M7 13l-1.3 1.3A1 1 0 006.4 16H19m-12 0a2 2 0 104 0m6 0a2 2 0 104 0"/></svg>
+          <span class="badge badge-sm indicator-item bg-orange-600 text-white border-0 js-cart-count">0</span>
+        </div>
+      </a>
+      <a href="my-orders.html" class="btn fh-outline">Orders</a>
+    </div>
+  </div>
+
+  <div class="md:hidden p-4 pb-0">
+    <label class="input w-full fh-input shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      <input id="search2" class="grow" placeholder="Search menu...">
+    </label>
+  </div>
+
+  <div class="p-4 lg:p-8 space-y-8">
+    <section class="relative overflow-hidden rounded-[2rem] min-h-[320px] lg:min-h-[460px] border border-[#dccdb8] shadow-xl max-w-[1800px] mx-auto">
+      <div class="absolute inset-0 bg-cover bg-center" style="background-image:url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1800&auto=format&fit=crop')"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-[#4a1d11]/80 via-[#5b2517]/45 to-[#000]/20"></div>
+      <div class="relative z-10 flex h-full min-h-[320px] lg:min-h-[460px] items-center px-6 md:px-10 lg:px-16 text-white">
+        <div class="max-w-4xl">
+          <p class="mb-4 text-sm md:text-base font-semibold uppercase tracking-[0.35em] text-amber-300">Foodie House Specials</p>
+          <h1 class="text-4xl md:text-6xl xl:text-7xl font-extrabold leading-none">ORDER YOUR<span class="block text-amber-300">FAVORITE FOOD</span></h1>
+          <p class="mt-5 max-w-2xl text-sm md:text-lg text-white/85">Discover delicious dishes, refreshing drinks, and sweet desserts in one place.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto fh-soft px-4 lg:px-8 py-5 shadow-sm">
+      <div id="tabs" class="flex justify-center gap-6 overflow-x-auto whitespace-nowrap pb-2"></div>
+    </section>
+
+    <section class="max-w-7xl mx-auto text-center">
+      <h2 id="title" class="text-2xl md:text-3xl font-extrabold text-[#3d241a]"></h2>
+      <p id="sub" class="text-sm text-[#6d2f1d]/65 mt-1"></p>
+    </section>
+
+    <section class="max-w-7xl mx-auto">
+      <div id="grid" class="flex flex-wrap justify-center gap-8"></div>
+    </section>
+  </div>
+
+  <script src="../app.js"></script>
+  <script>
+    requireCustomerSession();
+
+    const tabs = document.getElementById("tabs");
+    const grid = document.getElementById("grid");
+    const title = document.getElementById("title");
+    const sub = document.getElementById("sub");
+    const search1 = document.getElementById("search1");
+    const search2 = document.getElementById("search2");
+
+    let cats = [];
+    let data = {};
+    let all = [];
+    let active = "";
+    let q = "";
+    let items = [];
+
+    const toast = (m) => {
+      const e = document.createElement("div");
+      e.className = "toast toast-top toast-end z-[9999]";
+      e.innerHTML = `<div class="alert alert-success"><span>${m}</span></div>`;
+      document.body.appendChild(e);
+      setTimeout(() => e.remove(), 1200);
+    };
+
+    function buildFromBundle(bundle) {
+      const iconPool = ["🍛", "🍜", "🍟", "🥤", "🍰", "🍽️", "🥗", "🍲"];
+      cats = bundle.map((cat, idx) => {
+        const key = `cat-${idx + 1}`;
+        return { k: key, t: cat.title, i: iconPool[idx % iconPool.length], s: `Fresh ${cat.title}` };
+      });
+
+      data = {};
+      cats.forEach((cat, idx) => {
+        data[cat.k] = (bundle[idx]?.items || []).map((item) => ({ ...item, categoryKey: cat.k, categoryLabel: cat.t }));
+      });
+
+      all = Object.entries(data).flatMap(([k, arr]) => arr.map((x) => ({ ...x, categoryKey: k, categoryLabel: cats.find((c) => c.k === k)?.t || "" })));
+      active = cats[0]?.k || "";
+    }
+
+    function renderTabs() {
+      tabs.innerHTML = cats.map((c) => `
+        <button onclick="pick('${c.k}')" class="group flex flex-col items-center min-w-[110px] pb-2 border-b-4 transition-all ${!q && active === c.k ? 'border-orange-600 text-orange-600' : 'border-transparent text-[#6d2f1d] hover:text-orange-600'}">
+          <div class="text-3xl mb-2">${c.i}</div>
+          <span class="text-sm font-semibold text-center">${c.t}</span>
+        </button>
+      `).join("");
+    }
+
+    function visible() {
+      if (!q) return data[active] || [];
+      return all.filter((x) => [x.name, x.desc, x.tag, x.categoryLabel].join(" ").toLowerCase().includes(q));
+    }
+
+    function card(x, i) {
+      return `<div class="card w-[280px] md:w-[300px] xl:w-[320px] bg-white border border-[#e6dac8] shadow-md hover:shadow-xl transition-all rounded-[1.75rem] overflow-hidden group">
+        <figure class="h-56 bg-[#faf4eb]"><img src="${x.image}" alt="${x.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"></figure>
+        <div class="card-body p-4">
+          <div class="flex items-start justify-between gap-3"><div><h3 class="card-title text-lg text-[#3d241a]">${x.name}</h3><p class="text-xs text-[#6d2f1d]/60">${x.desc || "-"}</p></div><div class="badge badge-outline border-orange-300 text-orange-700">${money(x.price)}</div></div>
+          <div class="flex items-center justify-between mt-3"><span class="badge bg-orange-100 text-orange-700 border-0">${x.tag || x.categoryLabel}</span><span class="text-xs text-[#6d2f1d]/60">⭐ ${avgReview(x.name)}</span></div>
+          ${q ? `<div class="text-xs text-[#8b6b5c] mt-2">Category: ${x.categoryLabel}</div>` : ""}
+          <div class="card-actions justify-between mt-4"><button onclick="customize(${i})" class="btn btn-outline btn-sm rounded-full border-[#c8b39b] text-[#6d2f1d]">Customize</button><button onclick="quickAdd(${i})" class="btn btn-sm rounded-full bg-orange-600 hover:bg-orange-700 text-white border-0">Add</button></div>
+        </div>
+      </div>`;
+    }
+
+    function render() {
+      items = visible();
+      if (q) {
+        title.textContent = `Search Results for "${q}"`;
+        sub.textContent = items.length ? `${items.length} item(s) found` : "No matching menu found";
+      } else {
+        const c = cats.find((x) => x.k === active);
+        title.textContent = c?.t || "Menu";
+        sub.textContent = c?.s || "";
+      }
+      grid.innerHTML = items.length ? items.map(card).join("") : `<div class="w-full max-w-xl text-center bg-white border border-[#e6dac8] rounded-[1.75rem] p-10 shadow-sm"><h3 class="text-2xl font-extrabold text-[#3d241a]">No menu found</h3><p class="text-[#8b6b5c] mt-2">Try another keyword.</p></div>`;
+      renderTabs();
+      updateBadges();
+    }
+
+    function pick(k) { active = k; q = ""; search1.value = ""; search2.value = ""; render(); }
+    function customize(i) { localStorage.setItem("selectedMenuItem", JSON.stringify(items[i])); location.href = "menu-detail.html"; }
+    function quickAdd(i) { addBasicItem(items[i]); toast("Added to cart"); }
+    function doSearch(v) { q = v.trim().toLowerCase(); search1.value = v; search2.value = v; render(); }
+
+    async function init() {
+      try {
+        let bundle = getCustomerMenuBundle();
+        if (!bundle.length) bundle = await syncCustomerMenuFromDB();
+        buildFromBundle(bundle);
+      } catch (err) {
+        console.warn(err.message);
+      }
+      render();
+    }
+
+    search1.addEventListener("input", (e) => doSearch(e.target.value));
+    search2.addEventListener("input", (e) => doSearch(e.target.value));
+    window.pick = pick;
+    window.customize = customize;
+    window.quickAdd = quickAdd;
+    init();
+  </script>
+</body>
+</html>

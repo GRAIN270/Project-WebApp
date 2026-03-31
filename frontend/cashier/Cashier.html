@@ -1,0 +1,459 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="cupcake">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cashier POS - Foodie House</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    body { background-color: #f7f4ee; font-family: 'Inter', sans-serif; }
+    .table-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .table-active { border: 3px solid #ea580c !important; transform: scale(1.02); z-index: 10; }
+    .btn-serve { background-color: #00d285; color: white; border: none; font-weight: bold; }
+    .btn-serve:hover { background-color: #00b572; }
+    .status-pending { background-color: #f3f4f6; color: #9ca3af; font-weight: bold; border: none; cursor: not-allowed; text-transform: uppercase; }
+    .status-served { background-color: #b2f2d8; color: #00b572; font-weight: bold; border: none; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.75rem; }
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+  <div class="navbar bg-[#6d2f1d] text-white shadow-lg shrink-0 px-6">
+    <div class="flex-1">
+      <h1 class="text-xl font-black tracking-tighter">FOODIE HOUSE <span class="font-light text-orange-400">| CASHIER POS</span></h1>
+    </div>
+    <div class="flex-none flex items-center gap-3">
+      <div class="text-right flex flex-col justify-center">
+        <p class="text-[10px] font-bold opacity-60 uppercase leading-none mb-1">System Status</p>
+        <p class="text-xs font-bold text-green-400 leading-none">Online</p>
+      </div>
+      <div class="avatar placeholder">
+        <div class="bg-orange-500 text-white rounded-full w-10 h-10 flex items-center justify-center ring-2 ring-orange-300/50">
+          <span class="text-lg font-bold">AD</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex-1 flex overflow-hidden">
+    <aside class="w-72 bg-white border-r border-base-300 overflow-y-auto p-4 flex flex-col text-center">
+      <h3 class="font-black text-[#6d2f1d] mb-4 uppercase text-xs tracking-widest">Select Table</h3>
+      <div id="table-container" class="table-grid"></div>
+    </aside>
+
+    <main class="flex-1 bg-[#fcf9f2] p-6 overflow-y-auto">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-3xl font-black text-[#3d241a]">Checkout Scope: <span id="current-table-display" class="text-orange-600">ALL OPEN ORDERS</span></h2>
+          <p class="text-sm opacity-60" id="order-time-display">Including all open orders from every table</p>
+        </div>
+        <div class="badge badge-lg bg-white border-base-300 font-mono" id="order-id-display">#BATCH</div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+        <div class="bg-white border border-base-300 rounded-2xl p-3">
+          <p class="text-xs opacity-60 uppercase font-bold">All Orders</p>
+          <p id="all-orders-count" class="text-2xl font-black text-[#6d2f1d]">0</p>
+        </div>
+        <div class="bg-white border border-base-300 rounded-2xl p-3">
+          <p class="text-xs opacity-60 uppercase font-bold">Open Orders</p>
+          <p id="open-orders-count" class="text-2xl font-black text-orange-600">0</p>
+        </div>
+        <div class="bg-white border border-base-300 rounded-2xl p-3">
+          <p class="text-xs opacity-60 uppercase font-bold">All Orders Total</p>
+          <p id="all-orders-total" class="text-2xl font-black text-[#00b572]">THB 0.00</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-sm border border-base-200 overflow-hidden">
+        <table class="table w-full">
+          <thead>
+            <tr class="bg-base-100 text-[#6d2f1d]">
+              <th>Item Name</th>
+              <th class="text-center">Qty</th>
+              <th class="text-right">Price</th>
+              <th class="text-center">Status / Action</th>
+            </tr>
+          </thead>
+          <tbody id="order-items-body" class="font-medium text-[#6d2f1d]"></tbody>
+        </table>
+      </div>
+    </main>
+
+    <aside class="w-96 bg-white border-l border-base-300 flex flex-col shadow-2xl">
+      <div class="p-5 bg-[#6d2f1d] text-white">
+        <h3 class="font-black uppercase tracking-widest text-center">Payment</h3>
+        <p class="text-center text-xs opacity-70 mt-1">Batch checkout for all open orders</p>
+      </div>
+
+      <div class="flex-1 p-5 space-y-4 overflow-y-auto">
+        <div class="rounded-2xl border border-orange-200 bg-orange-50 p-4">
+          <p class="text-xs font-bold uppercase tracking-widest text-[#6d2f1d]/60">Amount Due</p>
+          <p class="text-4xl font-black text-orange-600 mt-1">THB <span id="grand-total">0.00</span></p>
+          <p id="method-help" class="text-xs mt-2 text-[#6d2f1d]/60">Select payment method below</p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div class="rounded-xl border border-base-300 p-2 text-center bg-base-100">
+            <p class="text-[10px] uppercase opacity-60 font-bold">Orders</p>
+            <p id="pay-open-orders" class="text-lg font-black text-[#6d2f1d]">0</p>
+          </div>
+          <div class="rounded-xl border border-base-300 p-2 text-center bg-base-100">
+            <p class="text-[10px] uppercase opacity-60 font-bold">Method</p>
+            <p id="pay-method" class="text-lg font-black text-orange-600">Cash</p>
+          </div>
+          <div class="rounded-xl border border-base-300 p-2 text-center bg-base-100">
+            <p class="text-[10px] uppercase opacity-60 font-bold">Received</p>
+            <p id="pay-received" class="text-lg font-black text-[#00b572]">0.00</p>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-base-300 p-3">
+          <p class="text-xs font-bold uppercase tracking-widest text-[#6d2f1d]/60 mb-2">Payment Method</p>
+          <div class="grid grid-cols-3 gap-2">
+            <button id="btn-cash" class="btn btn-sm bg-orange-600 text-white border-0" onclick="switchMethod('cash')">Cash</button>
+            <button id="btn-qr" class="btn btn-sm btn-outline border-base-300" onclick="switchMethod('qr')">QR</button>
+            <button id="btn-card" class="btn btn-sm btn-outline border-base-300" onclick="switchMethod('card')">Card</button>
+          </div>
+        </div>
+
+        <div id="section-cash" class="rounded-2xl border border-base-300 p-4 space-y-3">
+          <label class="text-xs font-bold uppercase tracking-widest text-[#6d2f1d]/60">Cash Received</label>
+          <input
+            type="number"
+            id="cash-input"
+            placeholder="Enter amount"
+            class="input input-lg bg-white border-base-300 text-3xl font-black text-right w-full focus:outline-orange-500"
+            oninput="calculateChange()"
+          />
+          <div class="rounded-xl bg-[#3d241a] px-3 py-2 flex items-center justify-between text-white">
+            <span class="text-xs uppercase opacity-70 font-bold">Change</span>
+            <span class="text-2xl font-black text-green-400" id="change-display">THB 0.00</span>
+          </div>
+        </div>
+
+        <div id="section-qr" class="hidden rounded-2xl border border-base-300 p-4 text-center space-y-3">
+          <p class="text-sm font-bold text-[#6d2f1d]">Scan PromptPay QR</p>
+          <div class="w-32 h-32 bg-white border mx-auto flex items-center justify-center font-bold text-[10px]">QR MOCKUP</div>
+          <button class="btn btn-sm btn-success text-white" onclick="verifyOther()">Verify QR Payment</button>
+        </div>
+
+        <div id="section-card" class="hidden rounded-2xl border border-base-300 p-4 text-center space-y-3">
+          <span class="loading loading-spinner loading-lg text-orange-500"></span>
+          <p class="text-sm text-[#6d2f1d]">Waiting card terminal...</p>
+          <button class="btn btn-sm btn-outline" onclick="verifyOther()">Confirm Card Payment</button>
+        </div>
+      </div>
+
+      <div class="p-5 bg-white border-t">
+        <div id="complete-btn-container" class="hidden">
+          <button class="btn btn-lg w-full bg-[#00d285] hover:bg-black text-white border-0 rounded-2xl h-16 shadow-xl" onclick="completePayment()">
+            <span class="text-base font-black uppercase">Complete Batch Payment</span>
+          </button>
+        </div>
+        <div id="waiting-msg" class="text-center opacity-60 py-3 text-sm font-medium">
+          Enter payment details to continue.
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const API_BASE = (localStorage.getItem('api_base') || '').trim() || 'http://localhost:3000';
+    const apiGet = async (path) => {
+      const r = await fetch(`${API_BASE}${path}`);
+      if (!r.ok) throw new Error(await r.text());
+      return r.json();
+    };
+    const apiPatch = async (path, body) => {
+      const r = await fetch(`${API_BASE}${path}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body || {})
+      });
+      if (!r.ok) throw new Error(await r.text());
+      return r.json();
+    };
+    const apiPost = async (path, body) => {
+      const r = await fetch(`${API_BASE}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body || {})
+      });
+      if (!r.ok) throw new Error(await r.text());
+      return r.json();
+    };
+
+    const staffSession = (() => {
+      try { return JSON.parse(localStorage.getItem('staff_session') || 'null'); } catch (_) { return null; }
+    })();
+    if (!staffSession) window.location.href = '/frontend/login/staff-login.html';
+
+    let tablesData = {};
+    let tableNumbers = [];
+    let allOrders = [];
+    let currentSelectedTable = null;
+    let currentMethod = 'cash';
+    let isOtherVerified = false;
+
+    const nextItemStatus = (s) => s === 'READY' ? 'SERVED' : (s === 'COOKING' ? 'READY' : (s === 'PENDING' ? 'COOKING' : s));
+
+    async function loadData() {
+      try {
+        const [tables, orders] = await Promise.all([
+          apiGet('/api/cashier/tables'),
+          apiGet('/api/admin/orders')
+        ]);
+
+        allOrders = Array.isArray(orders) ? orders : [];
+        tablesData = {};
+        tableNumbers = [];
+
+        for (const t of (tables || [])) {
+          const openOrder = (allOrders || []).find((o) =>
+            +o.table_id === +t.table_id && ['PENDING', 'COOKING', 'SERVING'].includes(String(o.status || '').toUpperCase())
+          );
+          tableNumbers.push(Number(t.table_number));
+          tablesData[t.table_number] = {
+            total: openOrder ? (+openOrder.total || 0) : 0,
+            status: openOrder ? 'occupied' : 'empty'
+          };
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderGlobalSummary() {
+      const totalOrders = (allOrders || []).length;
+      const openOrders = getOpenOrders().length;
+      const totalAmount = (allOrders || []).reduce((sum, o) => sum + Number(o.total || 0), 0);
+      document.getElementById('all-orders-count').innerText = String(totalOrders);
+      document.getElementById('open-orders-count').innerText = String(openOrders);
+      document.getElementById('all-orders-total').innerText = `THB ${totalAmount.toFixed(2)}`;
+    }
+
+    function renderTables() {
+      const container = document.getElementById('table-container');
+      container.innerHTML = '';
+      const sorted = [...tableNumbers].sort((a, b) => a - b);
+
+      for (const i of sorted) {
+        const table = tablesData[i] || { total: 0, status: 'empty' };
+        const isActive = i === currentSelectedTable ? 'table-active' : '';
+        const bgClass = table.status === 'occupied'
+          ? 'bg-orange-600 text-white'
+          : 'bg-gray-100 text-gray-400 border-dashed border-2';
+        const btn = document.createElement('button');
+        btn.className = `btn h-24 flex flex-col border-0 transition-all ${bgClass} ${isActive}`;
+        btn.innerHTML = `<span class="text-xl font-black">T-${i < 10 ? '0' + i : i}</span><span class="text-[10px] font-bold">${table.status === 'occupied' ? 'THB ' + (+table.total).toFixed(2) : 'EMPTY'}</span>`;
+        btn.onclick = () => selectTable(i);
+        container.appendChild(btn);
+      }
+
+      if (!sorted.length) {
+        container.innerHTML = '<p class="text-xs opacity-50">No table data</p>';
+      }
+    }
+
+    function getOpenOrders() {
+      return (allOrders || []).filter((o) => ['PENDING', 'COOKING', 'SERVING'].includes(String(o.status || '').toUpperCase()));
+    }
+
+    function renderCombinedItems() {
+      const openOrders = getOpenOrders();
+      const rows = openOrders.flatMap((o) => (o.items || []).map((i) => ({ ...i, _order: o })));
+      const itemsBody = document.getElementById('order-items-body');
+      itemsBody.innerHTML = '';
+
+      if (!rows.length) {
+        itemsBody.innerHTML = '<tr><td colspan="4" class="text-center py-20 opacity-20 italic">No Open Orders</td></tr>';
+        return;
+      }
+
+      rows.forEach((item) => {
+        const tableNo = Number(item?._order?.table_id || 0);
+        const orderNo = Number(item?._order?.id || 0);
+        const status = String(item.item_status || '').toLowerCase();
+        let actionContent = '';
+
+        if (status === 'served') {
+          actionContent = '<span class="status-served">Served</span>';
+        } else if (status === 'ready') {
+          actionContent = `<button class="btn btn-xs btn-serve" onclick="updateItemStatus(${item.order_item_id}, 'READY')">Serve Now</button>`;
+        } else {
+          actionContent = `<button class="btn btn-xs status-pending" disabled>${status || 'pending'}</button>`;
+        }
+
+        itemsBody.innerHTML += `
+          <tr class="hover:bg-orange-50/50">
+            <td class="font-bold">${item.name} <span class="text-[10px] opacity-60">[T-${String(tableNo).padStart(2, '0')} / ORD-${String(orderNo).padStart(5, '0')}]</span></td>
+            <td class="text-center font-bold">${item.qty}</td>
+            <td class="text-right">THB ${(+item.totalPrice || 0).toFixed(2)}</td>
+            <td class="text-center">${actionContent}</td>
+          </tr>`;
+      });
+    }
+
+    function renderBatchPaymentSummary() {
+      const openOrders = getOpenOrders();
+      const total = openOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+      const oldest = openOrders
+        .map((o) => new Date(o.time || ''))
+        .filter((d) => !Number.isNaN(d.getTime()))
+        .sort((a, b) => a - b)[0];
+
+      document.getElementById('current-table-display').innerText = 'ALL OPEN ORDERS';
+      document.getElementById('order-id-display').innerText = `#BATCH-${openOrders.length}`;
+      document.getElementById('order-time-display').innerText = oldest
+        ? `From ${oldest.toLocaleString()}`
+        : 'Including all open orders from every table';
+      document.getElementById('grand-total').innerText = total.toFixed(2);
+      document.getElementById('pay-open-orders').innerText = String(openOrders.length);
+    }
+
+    function selectTable(tableNum) {
+      currentSelectedTable = tableNum;
+      isOtherVerified = false;
+      renderCombinedItems();
+      renderBatchPaymentSummary();
+      document.getElementById('cash-input').value = '';
+      document.getElementById('change-display').innerText = 'THB 0.00';
+      document.getElementById('pay-received').innerText = '0.00';
+      checkPaymentStatus();
+      renderTables();
+    }
+
+    async function updateItemStatus(orderItemId, currentStatus) {
+      if (!orderItemId) return;
+      try {
+        await apiPatch(`/api/cook/items/${orderItemId}`, {
+          item_status: nextItemStatus(String(currentStatus || '').toUpperCase())
+        });
+        await loadData();
+        refreshView();
+      } catch (err) {
+        alert(err.message || 'Update status failed');
+      }
+    }
+
+    function calculateChange() {
+      const total = parseFloat(document.getElementById('grand-total').innerText) || 0;
+      const received = parseFloat(document.getElementById('cash-input').value) || 0;
+      const change = received - total;
+      document.getElementById('change-display').innerText = received >= total ? `THB ${change.toFixed(2)}` : 'THB 0.00';
+      document.getElementById('pay-received').innerText = received.toFixed(2);
+      checkPaymentStatus();
+    }
+
+    function checkPaymentStatus() {
+      const total = parseFloat(document.getElementById('grand-total').innerText) || 0;
+      const received = parseFloat(document.getElementById('cash-input').value) || 0;
+      const btnContainer = document.getElementById('complete-btn-container');
+      const waitingMsg = document.getElementById('waiting-msg');
+      const methodHelp = document.getElementById('method-help');
+
+      let canCheckout = false;
+      if (total > 0) {
+        if (currentMethod === 'cash' && received >= total) canCheckout = true;
+        if ((currentMethod === 'qr' || currentMethod === 'card') && isOtherVerified) canCheckout = true;
+      }
+
+      if (currentMethod === 'cash') {
+        methodHelp.textContent = 'Cash payment: enter amount received';
+      } else if (currentMethod === 'qr') {
+        methodHelp.textContent = 'QR payment: verify after customer transfer';
+      } else {
+        methodHelp.textContent = 'Card payment: verify after terminal confirmation';
+      }
+
+      if (canCheckout) {
+        btnContainer.classList.remove('hidden');
+        waitingMsg.classList.add('hidden');
+      } else {
+        btnContainer.classList.add('hidden');
+        waitingMsg.classList.remove('hidden');
+        if (total <= 0) waitingMsg.textContent = 'No open orders to pay.';
+        else if (currentMethod === 'cash') waitingMsg.textContent = 'Cash received is less than total due.';
+        else waitingMsg.textContent = 'Please verify payment first.';
+      }
+    }
+
+    function verifyOther() {
+      isOtherVerified = true;
+      checkPaymentStatus();
+      alert('Payment verified');
+    }
+
+    function switchMethod(method) {
+      currentMethod = method;
+      isOtherVerified = false;
+      ['btn-cash', 'btn-qr', 'btn-card'].forEach((id) => {
+        document.getElementById(id).className = 'btn btn-sm btn-outline border-base-300';
+      });
+      document.getElementById(`btn-${method}`).className = 'btn btn-sm bg-orange-600 text-white border-0';
+      ['section-cash', 'section-qr', 'section-card'].forEach((id) => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById(`section-${method}`).classList.remove('hidden');
+      document.getElementById('pay-method').innerText = method.toUpperCase();
+      checkPaymentStatus();
+    }
+
+    async function completePayment() {
+      const openOrders = getOpenOrders();
+      if (!openOrders.length) {
+        alert('No open orders to pay');
+        return;
+      }
+
+      try {
+        await Promise.all(
+          openOrders.map((o) =>
+            apiPost('/api/admin/pay', {
+              order_id: o.id,
+              total_payment: +o.total || 0,
+              method: currentMethod.toUpperCase()
+            })
+          )
+        );
+        alert(`Success! Paid ${openOrders.length} orders in one batch.`);
+        await loadData();
+        refreshView();
+      } catch (err) {
+        alert(err.message || 'Complete payment failed');
+      }
+    }
+
+    function refreshView() {
+      renderGlobalSummary();
+      renderTables();
+      const fallback = [...tableNumbers].sort((a, b) => a - b)[0] || 1;
+      if (!tableNumbers.includes(currentSelectedTable)) currentSelectedTable = fallback;
+      selectTable(currentSelectedTable || fallback);
+    }
+
+    window.updateItemStatus = updateItemStatus;
+    window.calculateChange = calculateChange;
+    window.verifyOther = verifyOther;
+    window.switchMethod = switchMethod;
+    window.completePayment = completePayment;
+
+    (async () => {
+      await loadData();
+      const firstTable = [...tableNumbers].sort((a, b) => a - b)[0] || 1;
+      currentSelectedTable = firstTable;
+      refreshView();
+      switchMethod('cash');
+
+      setInterval(async () => {
+        await loadData();
+        refreshView();
+      }, 8000);
+    })();
+  </script>
+</body>
+</html>

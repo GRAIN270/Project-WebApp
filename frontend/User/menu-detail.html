@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="cupcake">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu Detail</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    :root{--fh-bg:#f7f4ee;--fh-line:#d8ccb9;--fh-line-2:#e6dac8;--fh-brown:#6d2f1d;--fh-brown-2:#3d241a;--fh-orange:#ea580c;--fh-orange-2:#c2410c}
+    body{background:var(--fh-bg);color:var(--fh-brown-2)}
+    .fh-top{background:#efe5d7f2;border-bottom:1px solid var(--fh-line);backdrop-filter:blur(10px)}
+    .fh-card{background:#fff;border:1px solid var(--fh-line-2);border-radius:1.75rem;box-shadow:0 10px 24px rgba(61,36,26,.06)}
+    .fh-btn{background:var(--fh-orange)!important;border:none!important;color:#fff!important;border-radius:9999px}
+    .fh-btn:hover{background:var(--fh-orange-2)!important}
+  </style>
+</head>
+<body class="min-h-screen">
+  <!-- top bar -->
+  <div class="navbar sticky top-0 z-50 px-4 lg:px-8 min-h-16 fh-top">
+    <div class="flex-1"><a href="customer-dashboard.html" class="btn btn-ghost btn-circle text-xl text-[#6d2f1d]">‹</a></div>
+    <div class="text-2xl font-extrabold text-orange-600">Customize</div>
+    <div class="flex-1"></div>
+  </div>
+
+  <main class="max-w-6xl mx-auto p-4 lg:p-8 grid lg:grid-cols-2 gap-6">
+    <!-- left -->
+    <section class="space-y-6">
+      <div class="fh-card overflow-hidden">
+        <figure class="h-80 bg-[#faf4eb]"><img id="img" class="w-full h-full object-cover"></figure>
+        <div class="p-6">
+          <h1 id="name" class="text-4xl font-extrabold text-[#3d241a]"></h1>
+          <p id="desc" class="text-[#6d2f1d]/70 mt-2"></p>
+          <div class="flex flex-wrap items-center gap-3 mt-4">
+            <div id="basePrice" class="badge badge-outline border-orange-300 text-orange-700"></div>
+            <div class="badge bg-orange-100 text-orange-700 border-0"><span id="avgStars">☆☆☆☆☆</span>&nbsp;<span id="avgText">0.0</span></div>
+            <div class="text-sm text-[#8b6b5c]"><span id="reviewCount">0</span> review(s)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- reviews -->
+      <div class="fh-card p-6">
+        <h2 class="text-2xl font-extrabold text-[#3d241a] mb-4">Customer Reviews</h2>
+        <div id="reviewList" class="space-y-3"></div>
+      </div>
+    </section>
+
+    <!-- right -->
+    <section class="fh-card p-6 space-y-5">
+      <div id="optionWrap" class="space-y-5"></div>
+
+      <div>
+        <h2 class="text-2xl font-extrabold mb-3">Note</h2>
+        <textarea id="item-note" class="textarea textarea-bordered w-full rounded-2xl border-[#d8ccb9] h-24" placeholder="No onions, less spicy, etc."></textarea>
+      </div>
+
+      <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-extrabold">Quantity</h2>
+        <div class="join">
+          <button id="minus" class="join-item btn btn-outline">-</button>
+          <button id="qty" class="join-item btn btn-ghost pointer-events-none">1</button>
+          <button id="plus" class="join-item btn btn-outline">+</button>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-[#e6dac8] bg-[#faf6ef] p-4">
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-[#3d241a]">Total</span>
+          <span id="total" class="text-xl font-extrabold text-orange-600">0 THB</span>
+        </div>
+        <p id="note" class="text-sm text-[#8b6b5c] mt-2"></p>
+      </div>
+
+      <button id="add" class="btn fh-btn w-full">Add to Cart</button>
+    </section>
+  </main>
+
+  <script src="../app.js"></script>
+  <script>
+    requireCustomerSession();
+    const item=JSON.parse(localStorage.getItem("selectedMenuItem")||"null");
+    if(!item)location.href="customer-dashboard.html";
+
+    const img=document.getElementById("img"),nameEl=document.getElementById("name"),desc=document.getElementById("desc"),basePrice=document.getElementById("basePrice"),qtyEl=document.getElementById("qty"),total=document.getElementById("total"),note=document.getElementById("note"),optionWrap=document.getElementById("optionWrap"),itemNote=document.getElementById("item-note");
+    const avgStars=document.getElementById("avgStars"),avgText=document.getElementById("avgText"),reviewCount=document.getElementById("reviewCount"),reviewList=document.getElementById("reviewList");
+    let qty=1,base=+item.price||0;
+
+    img.src=item.image||"";img.alt=item.name||"menu";nameEl.textContent=item.name||"Menu";desc.textContent=item.desc||"";basePrice.textContent=`Base: ${money(base)}`;
+
+    function groupHtml(g,gi){
+      const rows=g.options.map((o,oi)=>g.type==="choice"
+        ? `<label class="label cursor-pointer justify-start gap-3 rounded-2xl border border-[#e6dac8] px-4 py-3">
+             <input type="radio" name="g${gi}" class="radio radio-sm opt" data-group="${g.name}" data-label="${o.label}" data-price="${o.price||0}" data-option-value-id="${o.option_value_id||o.value_id||0}" ${(o.default||oi===0)?"checked":""}>
+             <span class="label-text flex-1">${o.label}</span>
+             <span class="text-sm text-[#8b6b5c]">${o.price?`+${o.price} THB`:"Free"}</span>
+           </label>`
+        : `<label class="label cursor-pointer justify-start gap-3 rounded-2xl border border-[#e6dac8] px-4 py-3">
+             <input type="checkbox" class="checkbox checkbox-sm opt" data-group="${g.name}" data-label="${o.label}" data-price="${o.price||0}" data-option-value-id="${o.option_value_id||o.value_id||0}">
+             <span class="label-text flex-1">${o.label}</span>
+             <span class="text-sm text-[#8b6b5c]">${o.price?`+${o.price} THB`:"Free"}</span>
+           </label>`
+      ).join("");
+      return `<div><h2 class="text-2xl font-extrabold mb-3">${g.name}</h2><div class="space-y-3">${rows}</div></div>`;
+    }
+
+    const optionGroups = Array.isArray(item.optionGroups) ? item.optionGroups : [];
+    optionWrap.innerHTML = optionGroups.length
+      ? optionGroups.map(groupHtml).join('<div class="divider my-0"></div>')
+      : '<div class="rounded-2xl border border-dashed border-[#d8ccb9] p-4 text-[#8b6b5c]">No options for this menu.</div>';
+
+    const selectedOptions=()=>[...document.querySelectorAll(".opt:checked")].map(x=>({group:x.dataset.group,label:x.dataset.label,price:+x.dataset.price||0,option_value_id:+x.dataset.optionValueId||0}));
+    const optionTotal=()=>selectedOptions().reduce((s,x)=>s+x.price,0);
+
+    function render(){
+      const unit=base+optionTotal();
+      qtyEl.textContent=qty;
+      total.textContent=money(unit*qty);
+      note.textContent=`Base ${base} + Options ${optionTotal()} = ${unit} THB each`;
+    }
+
+    function reviewCard(r){
+      return `<div class="rounded-2xl border border-[#e6dac8] bg-[#faf6ef] p-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="font-bold text-orange-600">${starText(+r.stars||0)}</div>
+          <div class="text-xs text-[#8b6b5c]">${r.time}</div>
+        </div>
+        <div class="text-sm text-[#6d2f1d] mt-2">${r.itemLabel||r.itemName}</div>
+        <p class="text-[#3d241a] mt-2">${r.text||"-"}</p>
+      </div>`;
+    }
+    function renderReviews(){
+      const a=menuReviews(item.name),avg=avgReview(item.name);
+      avgStars.textContent=starText(Math.round(+avg||0));
+      avgText.textContent=avg;
+      reviewCount.textContent=a.length;
+      reviewList.innerHTML=a.length?a.map(reviewCard).join(""):`<div class="rounded-2xl border border-dashed border-[#d8ccb9] p-6 text-center text-[#8b6b5c]">No reviews yet</div>`;
+    }
+
+    minus.onclick=()=>{if(qty>1)qty--;render()};
+    plus.onclick=()=>{qty++;render()};
+    document.querySelectorAll(".opt").forEach(x=>x.addEventListener("change",render));
+
+    add.onclick=()=>{
+      const c=getCart();
+      c.push(norm({...item,qty,basePrice:base,selectedOptions:selectedOptions(),note:itemNote.value.trim()}));
+      saveCart(c);updateBadges();location.href="cart.html";
+    };
+
+    render();
+    renderReviews();
+  </script>
+</body>
+</html>

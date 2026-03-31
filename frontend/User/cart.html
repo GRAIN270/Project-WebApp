@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="cupcake">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    :root{--fh-bg:#f7f4ee;--fh-soft:#efe5d7;--fh-line:#d8ccb9;--fh-line-2:#e6dac8;--fh-brown:#6d2f1d;--fh-brown-2:#3d241a;--fh-orange:#ea580c;--fh-orange-2:#c2410c}
+    body{background:var(--fh-bg);color:var(--fh-brown-2)}
+    .fh-top{background:#efe5d7f2;border-bottom:1px solid var(--fh-line);backdrop-filter:blur(10px)}
+    .fh-card{background:#fff;border:1px solid var(--fh-line-2);border-radius:1.75rem;box-shadow:0 10px 24px rgba(61,36,26,.06)}
+    .fh-btn{background:var(--fh-orange)!important;border:none!important;color:#fff!important;border-radius:9999px}
+    .fh-btn:hover{background:var(--fh-orange-2)!important}
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="navbar sticky top-0 z-50 px-4 lg:px-8 min-h-16 fh-top">
+    <div class="flex-1 items-center gap-2"><a href="customer-dashboard.html" class="btn btn-ghost btn-circle text-xl text-[#6d2f1d]">&lt;</a><div class="text-2xl font-extrabold text-orange-600">Cart</div></div>
+    <div class="flex-none"><button id="top-order-btn" class="btn fh-btn">Order Now</button></div>
+  </div>
+
+  <main class="max-w-5xl mx-auto p-4 lg:p-8 space-y-4">
+    <div id="empty" class="hidden rounded-2xl border border-[#e6dac8] bg-white p-4 text-[#8b6b5c]">Your cart is empty.</div>
+    <div id="list" class="space-y-4"></div>
+    <div class="fh-card">
+      <div class="p-6 flex justify-between items-center">
+        <span class="text-2xl font-bold text-[#3d241a]">Grand Total</span>
+        <span id="grand" class="text-3xl font-extrabold text-orange-600">0 THB</span>
+      </div>
+    </div>
+    <button id="checkout-btn" class="btn fh-btn w-full text-lg">Place Order</button>
+  </main>
+
+  <script src="../app.js"></script>
+  <script>
+    requireCustomerSession();
+    const list=document.getElementById("list"),empty=document.getElementById("empty"),grand=document.getElementById("grand"),checkoutBtn=document.getElementById("checkout-btn");
+    const lines=x=>[`Base: ${money(x.basePrice)}`,`Unit: ${money(x.unitPrice)}`,`Total: ${money(x.totalPrice)}`,...itemNotes(x)];
+
+    function card(x,i){
+      return `<div class="fh-card"><div class="p-6"><div class="flex flex-col md:flex-row md:justify-between gap-4">
+        <div class="flex-1"><h2 class="text-2xl font-extrabold text-[#3d241a]">${itemLabel(x)}</h2><div class="text-sm text-[#6d2f1d]/70 space-y-1 mt-2">${lines(x).map(t=>`<p>${t}</p>`).join("")}</div></div>
+        <div class="flex flex-col items-end gap-3">
+          <div class="join"><button onclick="chg(${i},-1)" class="join-item btn btn-outline">-</button><button class="join-item btn btn-ghost pointer-events-none">${x.qty}</button><button onclick="chg(${i},1)" class="join-item btn btn-outline">+</button></div>
+          <button onclick="delItem(${i})" class="btn btn-sm btn-error text-white rounded-full">Remove</button>
+        </div>
+      </div></div></div>`;
+    }
+
+    function render(){
+      let c=normCart();
+      const valid=c.filter(x=>Number(x.menu_id||0)>0);
+      if(valid.length!==c.length){
+        c=valid;
+        saveCart(c);
+      }
+      const hasItems=!!c.length;
+      empty.classList.toggle("hidden",hasItems);
+      list.innerHTML=c.map(card).join("");
+      grand.textContent=money(c.reduce((s,x)=>s+x.totalPrice,0));
+      checkoutBtn.disabled=!hasItems;
+      checkoutBtn.classList.toggle("opacity-50",!hasItems);
+      updateBadges();
+    }
+
+    function chg(i,d){setQty(i,(normCart()[i]?.qty||0)+d);render()}
+    function delItem(i){const c=normCart();c.splice(i,1);saveCart(c);render()}
+
+    async function placeOrder(){
+      if(!normCart().length){
+        alert("Your cart is empty.");
+        return;
+      }
+      try{
+        const order=await pushOrder("CASH",{summary:"Cash - ordered from cart"});
+        if(!order){
+          alert("Unable to place order. Please login again.");
+          return;
+        }
+        alert(`Order placed!\nOrder ID: ${order.id}`);
+        location.href="my-orders.html";
+      }catch(err){
+        alert(err.message||"Order failed");
+      }
+    }
+
+    checkoutBtn.onclick=placeOrder;
+    document.getElementById("top-order-btn").onclick=placeOrder;
+
+    render();
+    window.chg=chg;
+    window.delItem=delItem;
+  </script>
+</body>
+</html>

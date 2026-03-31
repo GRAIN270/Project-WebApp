@@ -1,0 +1,139 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="cupcake">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All Orders</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <style>
+    :root {
+      --fh-orange: #ea580c;
+      --fh-orange-hover: #c2410c;
+      --fh-brown: #6d2f1d;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-[#f7f4ee] text-base-content">
+  <div class="drawer lg:drawer-open">
+    <input id="admin-drawer" type="checkbox" class="drawer-toggle" />
+
+    <div class="drawer-content flex flex-col min-h-screen">
+
+      <div class="navbar sticky top-0 z-50 bg-[#efe5d7]/95 backdrop-blur border-b border-[#d8ccb9] px-3 lg:px-8 min-h-16 shadow-sm">
+        <div class="flex-none lg:hidden">
+          <label for="admin-drawer" class="btn btn-ghost btn-circle">Menu</label>
+        </div>
+
+        <div class="flex-1 items-center gap-3">
+          <a href="./dashboard_Admin.html" class="text-2xl lg:text-3xl font-extrabold tracking-tight text-orange-600">
+            Foodie House Admin
+          </a>
+          <span class="ml-2 text-sm text-base-content/60">/ Orders</span>
+        </div>
+
+        <div class="flex-none">
+          <button onclick="logoutStaff()" class="btn btn-outline btn-error rounded-full">
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <main class="p-4 lg:p-8 flex-1">
+        <div class="max-w-7xl mx-auto space-y-6">
+
+          <div class="flex justify-between items-center flex-wrap gap-3">
+            <div>
+              <h1 class="text-3xl font-extrabold text-[#3d241a]">All Orders</h1>
+              <p class="text-[#6d2f1d]/70 mt-2">View all customer orders across the system</p>
+            </div>
+          </div>
+
+          <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
+            <div class="card-body p-0">
+              <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                  <thead>
+                    <tr>
+                      <th>Order ID</th>
+                      <th>Time</th>
+                      <th>Table</th>
+                      <th>Status</th>
+                      <th>Total</th>
+                      <th class="text-right pr-6">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="orders-tbody">
+                    </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+
+    <div class="drawer-side">
+      <label for="admin-drawer" class="drawer-overlay"></label>
+      <aside class="min-h-full w-72 bg-[#efe5d7] border-r border-[#d8ccb9] p-4">
+        <div class="text-2xl font-extrabold text-orange-600 mb-6">Admin Panel</div>
+        <div id="admin-sidebar"></div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="../app.js"></script>
+  <script>
+    requireStaff("admin");
+    setupAdminSidebar();
+    document.getElementById("admin-sidebar").innerHTML = adminSidebar("orders.html");
+
+    function renderOrders() {
+      let orders = getOrders();
+      const tbody = document.getElementById("orders-tbody");
+      
+      if (!tbody) return;
+
+      if (!orders || orders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center opacity-50 py-4">No orders found.</td></tr>`;
+        return;
+      }
+
+      orders.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+      tbody.innerHTML = orders.map(o => {
+        const orderTime = o.time ? new Date(o.time).toLocaleString() : 'N/A';
+        
+        return `
+          <tr>
+            <td class="font-bold text-orange-600">#${o.id}</td>
+            <td class="text-sm">${orderTime}</td>
+            <td>${o.tableId || 'Unknown'}</td>
+            <td><span class="badge ${statusBadge(o.status)}">${o.status}</span></td>
+            <td class="font-bold text-[#3d241a]">THB ${Number(o.total || 0).toFixed(2)}</td>
+            <td class="text-right pr-6">
+              <a href="order-detail.html?id=${encodeURIComponent(o.dbId || o.id)}" class="btn btn-xs btn-outline rounded-full">Detail</a>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function initOrdersPage() {
+      try {
+        await syncAllFromDB();
+      } catch (err) {
+        console.warn(err.message);
+      }
+      renderOrders();
+    }
+
+    initOrdersPage();
+    setInterval(initOrdersPage, 10000);
+  </script>
+</body>
+</html>

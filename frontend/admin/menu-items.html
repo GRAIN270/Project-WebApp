@@ -1,0 +1,259 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="cupcake">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menu Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    :root { --fh-orange: #ea580c; --fh-orange-hover: #c2410c; }
+    .btn-primary { background-color: var(--fh-orange) !important; border-color: var(--fh-orange) !important; color: #fff !important; }
+    .btn-primary:hover { background-color: var(--fh-orange-hover) !important; border-color: var(--fh-orange-hover) !important; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#f7f4ee] text-base-content">
+  <div class="drawer lg:drawer-open">
+    <input id="admin-drawer" type="checkbox" class="drawer-toggle" />
+    
+    <div class="drawer-content flex flex-col min-h-screen">
+      <div class="navbar sticky top-0 z-50 bg-[#efe5d7]/95 backdrop-blur border-b border-[#d8ccb9] px-3 lg:px-8 min-h-16 shadow-sm">
+        <div class="flex-none lg:hidden">
+          <label for="admin-drawer" class="btn btn-ghost btn-circle">Menu</label>
+        </div>
+        <div class="flex-1 items-center gap-3">
+          <a href="./dashboard_Admin.html" class="text-2xl lg:text-3xl font-extrabold tracking-tight text-orange-600">Foodie House Admin</a>
+          <span class="ml-2 text-sm text-base-content/60">/ Menu Management</span>
+        </div>
+        <div class="flex-none">
+          <button onclick="logoutStaff()" class="btn btn-outline btn-error rounded-full">Logout</button>
+        </div>
+      </div>
+
+      <main class="p-4 lg:p-8 flex-1">
+        <div class="max-w-7xl mx-auto space-y-6">
+          <div class="flex justify-between items-center flex-wrap gap-3">
+            <div>
+              <h1 class="text-3xl font-extrabold text-[#3d241a]">Menu Items</h1>
+              <p class="text-[#6d2f1d]/70 mt-2">Manage your restaurant's food and beverage offerings</p>
+            </div>
+            <button onclick="openMenuModal()" class="btn btn-primary rounded-full">+ Add New Item</button>
+          </div>
+
+          <div class="card bg-white border border-[#e6dac8] shadow-md rounded-[1.75rem]">
+            <div class="card-body p-0">
+              <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                  <thead>
+                    <tr>
+                      <th class="pl-8">Image</th>
+                      <th>Name</th>
+                      <th>Category</th>
+                      <th>Price</th>
+                      <th>Status</th>
+                      <th class="text-right pr-8">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="menu-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="drawer-side">
+      <label for="admin-drawer" class="drawer-overlay"></label>
+      <aside class="min-h-full w-72 bg-[#efe5d7] border-r border-[#d8ccb9] p-4">
+        <div class="text-2xl font-extrabold text-orange-600 mb-6">Admin Panel</div>
+        <div id="admin-sidebar"></div>
+      </aside>
+    </div>
+  </div>
+
+  <dialog id="menu-modal" class="modal">
+    <div class="modal-box">
+      <h3 class="font-bold text-lg" id="modal-title">Add New Item</h3>
+      <div class="space-y-4 mt-4">
+        <div class="flex flex-col items-center gap-2">
+          <div class="avatar">
+            <div class="w-24 h-24 rounded-xl ring ring-orange-100">
+              <img id="img-preview" src="https://placehold.co/100x100?text=No+Image" />
+            </div>
+          </div>
+          <input type="file" id="menu-image" accept="image/*" class="file-input file-input-bordered file-input-sm w-full max-w-xs" />
+        </div>
+
+        <input id="menu-name" class="input input-bordered w-full" placeholder="Menu Name (e.g. Burger)" />
+        <select id="menu-category" class="select select-bordered w-full">
+          <option>Rice Dishes</option>
+          <option>Burgers</option>
+          <option>Chicken Sets</option>
+          <option>Snacks</option>
+          <option>Drinks</option>
+        </select>
+        <input id="menu-price" type="number" class="input input-bordered w-full" placeholder="Price (e.g. 149)" />
+      </div>
+      <div class="modal-action">
+        <button class="btn" onclick="document.getElementById('menu-modal').close()">Cancel</button>
+        <button class="btn btn-primary border-0" id="save-menu-btn">Save</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="../app.js"></script>
+  <script>
+    requireStaff("admin");
+    setupAdminSidebar();
+    document.getElementById("admin-sidebar").innerHTML = adminSidebar("menu-items.html");
+
+    let menus = getMenus();
+    let editingMenuId = null;
+    let currentImageBase64 = "";
+
+    document.getElementById("menu-image").onchange = function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          currentImageBase64 = event.target.result;
+          document.getElementById("img-preview").src = currentImageBase64;
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    function renderMenus() {
+      menus = getMenus() || menus || [];
+      const tbody = document.getElementById("menu-tbody");
+      if (!tbody) return;
+      if (!menus || menus.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center opacity-50 py-4">No menu items found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = menus.map(m => `
+        <tr>
+          <td class="pl-8">
+            <div class="avatar">
+              <div class="mask mask-squircle w-12 h-12">
+                <img src="${m.image || 'https://placehold.co/100x100?text=Food'}" alt="${m.name}" />
+              </div>
+            </div>
+          </td>
+          <td class="font-bold">${m.name}</td>
+          <td><span class="badge badge-ghost">${m.category}</span></td>
+          <td>THB ${Number(m.price || 0).toFixed(2)}</td>
+          <td>
+            <span class="badge ${m.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} border-0">
+              ${m.status}
+            </span>
+          </td>
+          <td class="flex justify-end gap-2 pr-8 mt-3">
+            <button onclick="toggleMenuStatus('${m.id}')" class="btn btn-xs rounded-full ${m.status === 'Active' ? 'btn-warning' : 'btn-success'} text-white border-0">
+              ${m.status === 'Active' ? 'Disable' : 'Enable'}
+            </button>
+            <button onclick="openMenuModal('${m.id}')" class="btn btn-xs btn-outline rounded-full">Edit</button>
+            <button onclick="deleteMenu('${m.id}')" class="btn btn-xs btn-error rounded-full text-white">Delete</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    window.openMenuModal = function(id = null) {
+      editingMenuId = id;
+      const title = document.getElementById("modal-title");
+      const nameInput = document.getElementById("menu-name");
+      const catInput = document.getElementById("menu-category");
+      const priceInput = document.getElementById("menu-price");
+      const preview = document.getElementById("img-preview");
+      const fileInput = document.getElementById("menu-image");
+
+      fileInput.value = ""; 
+      
+      if (id) {
+        const menu = menus.find(m => m.id === id);
+        title.textContent = "Edit Menu Item";
+        nameInput.value = menu.name;
+        catInput.value = menu.category;
+        priceInput.value = menu.price;
+        currentImageBase64 = menu.image || "";
+        preview.src = menu.image || "https://placehold.co/100x100?text=No+Image";
+      } else {
+        title.textContent = "Add New Item";
+        nameInput.value = "";
+        catInput.value = "Rice Dishes";
+        priceInput.value = "";
+        currentImageBase64 = "";
+        preview.src = "https://placehold.co/100x100?text=No+Image";
+      }
+      document.getElementById("menu-modal").showModal();
+    }
+
+    document.getElementById("save-menu-btn").onclick = () => {
+      const name = document.getElementById("menu-name").value.trim();
+      const category = document.getElementById("menu-category").value;
+      const price = parseFloat(document.getElementById("menu-price").value);
+
+      if (!name || isNaN(price)) {
+        alert("Please enter a valid name and price.");
+        return;
+      }
+
+      if (editingMenuId) {
+        const menu = menus.find(m => m.id === editingMenuId);
+        if(menu){
+            menu.name = name;
+            menu.category = category;
+            menu.price = price;
+            menu.image = currentImageBase64; 
+        }
+      } else {
+        const nextId = menus.length > 0 ? Math.max(...menus.map(m => parseInt(m.id.replace("M-", "")))) + 1 : 1;
+        menus.push({
+          id: `M-${String(nextId).padStart(2, "0")}`,
+          name, category, price, 
+          status: "Active",
+          image: currentImageBase64 
+        });
+      }
+
+      saveMenus(menus);
+      renderMenus();
+      document.getElementById("menu-modal").close();
+    };
+
+    window.toggleMenuStatus = function(id) {
+      const menu = menus.find(m => m.id === id);
+      if (menu) {
+        menu.status = menu.status === "Active" ? "Inactive" : "Active";
+        saveMenus(menus);
+        renderMenus();
+      }
+    }
+
+    window.deleteMenu = function(id) {
+      if(confirm("Are you sure you want to delete this menu item?")) {
+        menus = menus.filter(m => m.id !== id);
+        saveMenus(menus);
+        renderMenus();
+      }
+    }
+
+    async function initMenuPage() {
+      try {
+        await syncAllFromDB();
+      } catch (err) {
+        console.warn(err.message);
+      }
+      menus = getMenus() || menus || [];
+      renderMenus();
+    }
+
+    initMenuPage();
+    setInterval(initMenuPage, 10000);
+  </script>
+</body>
+</html>
+

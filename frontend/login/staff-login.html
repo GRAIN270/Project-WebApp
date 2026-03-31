@@ -1,0 +1,157 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="cupcake">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="min-h-screen bg-[#f7f4ee] text-base-content">
+
+  <!-- Navbar -->
+  <div class="navbar sticky top-0 z-50 bg-[#efe5d7]/95 backdrop-blur border-b border-[#d8ccb9] px-3 lg:px-8 min-h-16 shadow-sm">
+    <div class="flex-1 items-center gap-3">
+      <button class="btn btn-ghost btn-circle text-xl">Menu</button>
+      <a class="text-2xl lg:text-3xl font-extrabold tracking-tight text-orange-600">
+        Foodie House
+      </a>
+    </div>
+
+    <div class="flex-none">
+      <a href="customer-login.html" class="btn btn-outline rounded-full border-[#c8b39b] text-[#6d2f1d] hover:bg-[#f7efe4]">
+        Customer Login
+      </a>
+    </div>
+  </div>
+
+  <!-- Hero + Login -->
+  <div class="min-h-[calc(100vh-64px)] px-4 lg:px-8 py-8 flex items-center">
+    <div class="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+
+      <!-- Left -->
+      <div class="space-y-6">
+        <div class="badge bg-[#6d2f1d] text-white border-0 px-4 py-3">
+          Cook / Admin Access
+        </div>
+
+        <div>
+          <h1 class="text-4xl md:text-5xl xl:text-6xl font-extrabold leading-tight text-[#3d241a]">
+            Manage orders
+            <span class="block text-orange-600">with confidence</span>
+          </h1>
+          <p class="mt-4 text-base md:text-lg text-[#6d2f1d]/70 max-w-xl">
+            Login as staff to manage menus, update order status,
+            and keep the whole restaurant running smoothly.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="card bg-white border border-[#e6dac8] shadow-sm rounded-3xl">
+            <div class="card-body items-center text-center p-5">
+              <div class="text-3xl font-black text-orange-600">CK</div>
+              <p class="font-bold text-[#3d241a]">Cook Panel</p>
+              <p class="text-xs text-[#6d2f1d]/60">Update item status quickly</p>
+            </div>
+          </div>
+
+          <div class="card bg-white border border-[#e6dac8] shadow-sm rounded-3xl">
+            <div class="card-body items-center text-center p-5">
+              <div class="text-3xl font-black text-orange-600">OD</div>
+              <p class="font-bold text-[#3d241a]">Order Queue</p>
+              <p class="text-xs text-[#6d2f1d]/60">Track all active customer orders</p>
+            </div>
+          </div>
+
+          <div class="card bg-white border border-[#e6dac8] shadow-sm rounded-3xl">
+            <div class="card-body items-center text-center p-5">
+              <div class="text-3xl font-black text-orange-600">AD</div>
+              <p class="font-bold text-[#3d241a]">Admin Tools</p>
+              <p class="text-xs text-[#6d2f1d]/60">Manage menu and service flow</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right -->
+      <div class="flex justify-center lg:justify-end">
+        <div class="card w-full max-w-md bg-white border border-[#e6dac8] shadow-xl rounded-[2rem] overflow-hidden">
+          <div class="h-32 bg-gradient-to-r from-[#3d241a] via-[#6d2f1d] to-orange-600 relative">
+            <div class="absolute inset-0 bg-black/10"></div>
+            <div class="absolute bottom-5 left-6 text-white">
+              <p class="text-sm uppercase tracking-[0.25em] opacity-90">Foodie House</p>
+              <h2 class="text-3xl font-extrabold">Staff Login</h2>
+            </div>
+          </div>
+
+          <div class="card-body p-6 md:p-8">
+            <div class="space-y-4">
+              <div>
+                <label class="label">
+                  <span class="label-text font-semibold text-[#6d2f1d]">Staff ID</span>
+                </label>
+                <input
+                  id="staff-id"
+                  type="text"
+                  placeholder="cook01 / admin01"
+                  class="input w-full rounded-2xl bg-white border-[#d8ccb9] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label class="label">
+                  <span class="label-text font-semibold text-[#6d2f1d]">Password</span>
+                </label>
+                <input
+                  id="staff-password"
+                  type="password"
+                  placeholder="password..."
+                  class="input w-full rounded-2xl bg-white border-[#d8ccb9] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                id="cook-login-btn"
+                class="btn rounded-full bg-orange-600 hover:bg-orange-700 text-white border-0 shadow-md"
+              >
+                Cook Login
+              </button>
+
+              <button
+                id="admin-login-btn"
+                class="btn rounded-full bg-[#6d2f1d] hover:bg-[#5b2517] text-white border-0 shadow-md"
+              >
+                Admin Login
+              </button>
+            </div>
+
+            <div class="divider text-[#6d2f1d]/50 text-xs my-5">secure access</div>
+
+            <p class="text-center text-sm text-[#6d2f1d]/60">
+              Use your staff account to access the kitchen or admin dashboard.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+<script src="../app.js"></script>
+<script>
+  function makeStaffSession(role) {
+    const staffId = document.getElementById("staff-id").value.trim();
+    const password = document.getElementById("staff-password").value.trim();
+    if (!staffId) return alert("Please enter Staff ID.");
+    if (!password) return alert("Please enter password.");
+    localStorage.setItem("staff_session", JSON.stringify({ role, staff_id: staffId, loginAt: new Date().toISOString() }));
+    window.location.href = role === "cook" ? "/frontend/cook/ck-dsb.html" : "/frontend/admin/dashboard_Admin.html";
+  }
+
+  document.getElementById("cook-login-btn").onclick = () => makeStaffSession("cook");
+  document.getElementById("admin-login-btn").onclick = () => makeStaffSession("admin");
+</script>
+</body>
+</html>
+
