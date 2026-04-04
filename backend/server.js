@@ -53,6 +53,7 @@ const pageRoutes = {
   '/admin/attendance': 'frontend/admin/attendance.html',
   '/admin/cooks': 'frontend/admin/cooks.html',
 
+  '/cook/profile': 'frontend/cook/ck-profile.html', 
   '/cook': 'frontend/cook/ck-dsb.html',
   '/cook/dashboard': 'frontend/cook/ck-dsb.html',
   '/cook/orders': 'frontend/cook/ck-od.html',
