@@ -75,7 +75,7 @@
                     <tr>
                       <th>ID</th>
                       <th>Name</th>
-                      <th>Shift</th>
+                      <th>Username</th> <th>Shift</th>
                       <th>Status</th>
                       <th></th>
                     </tr>
@@ -104,7 +104,10 @@
       <h3 class="font-bold text-lg" id="modal-title">Add Cook</h3>
 
       <div class="space-y-3 mt-3">
-        <input id="cook-name" class="input input-bordered w-full" placeholder="Name" />
+        <input id="cook-name" class="input input-bordered w-full" placeholder="Name (ชื่อแสดงผล)" />
+        <input id="cook-username" class="input input-bordered w-full" placeholder="Username (บัญชีเข้าสู่ระบบ)" />
+        <input id="cook-password" type="text" class="input input-bordered w-full" placeholder="Password (รหัสผ่าน - เว้นว่างถ้าไม่เปลี่ยน)" />
+        
         <select id="cook-shift" class="select select-bordered w-full">
           <option>Morning</option>
           <option>Afternoon</option>
@@ -141,7 +144,7 @@
       if (!tbody) return;
       
       if (!cooks || cooks.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center opacity-50 py-4">No cooks found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center opacity-50 py-4">No cooks found.</td></tr>`;
         return;
       }
 
@@ -149,7 +152,7 @@
         <tr>
           <td class="font-mono">${c.id}</td>
           <td>${c.name}</td>
-          <td>${c.shift}</td>
+          <td>${c.username || '-'}</td> <td>${c.shift}</td>
           <td>${badge(c.status)}</td>
           <td class="flex justify-end gap-2">
             <button onclick="toggleCookStatus('${c.id}')" class="btn btn-xs ${c.status === 'Active' ? 'btn-error' : 'btn-success'} text-white rounded-full">
@@ -161,10 +164,20 @@
       `).join("");
     }
 
-    window.toggleCookStatus = function(id) {
+    window.toggleCookStatus = async function(id) {
       const cook = cooks.find(c => c.id === id);
       if (cook) {
         cook.status = cook.status === "Active" ? "Inactive" : "Active";
+        
+
+        try {
+          await fetch(`/api/admin/cooks/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: cook.status })
+          });
+        } catch (e) { console.log(e); }
+
         saveCooks(cooks);
         renderCooks();
       }
@@ -173,6 +186,8 @@
     document.getElementById("btn-add").onclick = () => {
       editingCookId = null;
       document.getElementById("cook-name").value = "";
+      document.getElementById("cook-username").value = "";
+      document.getElementById("cook-password").value = "";
       document.getElementById("cook-shift").value = "Morning";
       document.getElementById("modal-title").textContent = "Add Cook";
       document.getElementById("modal").showModal();
@@ -182,30 +197,62 @@
       const cook = cooks.find(c => c.id === id);
       if (!cook) return;
       editingCookId = id;
-      document.getElementById("cook-name").value = cook.name;
-      document.getElementById("cook-shift").value = cook.shift;
+
+      document.getElementById("cook-name").value = cook.name || "";
+      document.getElementById("cook-username").value = cook.username || "";
+      document.getElementById("cook-password").value = ""; 
+      document.getElementById("cook-shift").value = cook.shift || "Morning";
       document.getElementById("modal-title").textContent = "Edit Cook";
       document.getElementById("modal").showModal();
     }
 
-    document.getElementById("save-cook").onclick = () => {
+    document.getElementById("save-cook").onclick = async () => {
       const name = document.getElementById("cook-name").value.trim();
+      const username = document.getElementById("cook-username").value.trim();
+      const password = document.getElementById("cook-password").value.trim();
       const shift = document.getElementById("cook-shift").value;
 
-      if (!name) {
-        alert("Please enter cook name");
+      if (!name || !username) {
+        alert("Please enter Name and Username");
         return;
       }
 
-      if (editingCookId) {
-        const cook = cooks.find(c => c.id === editingCookId);
-        if(cook) {
-          cook.name = name;
-          cook.shift = shift;
+      try {
+        const payload = { name, username, password, shift };
+        
+        if (editingCookId) {
+          await fetch(`/api/admin/cooks/${editingCookId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          
+          const cook = cooks.find(c => c.id === editingCookId);
+          if(cook) {
+            cook.name = name;
+            cook.username = username;
+            if (password) cook.password = password; 
+            cook.shift = shift;
+          }
+        } else {
+          const res = await fetch(`/api/admin/cooks`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          
+          const nextId = cooks.length > 0 ? Math.max(...cooks.map(c => parseInt(c.id.replace("CK-", "")))) + 1 : 1;
+          cooks.push({ 
+            id: `CK-${String(data.cook_id || nextId).padStart(2, "0")}`, 
+            name, 
+            username,
+            shift, 
+            status: "Active" 
+          });
         }
-      } else {
-        const nextId = cooks.length > 0 ? Math.max(...cooks.map(c => parseInt(c.id.replace("CK-", "")))) + 1 : 1;
-        cooks.push({ id: `CK-${String(nextId).padStart(2, "0")}`, name, shift, status: "Active" });
+      } catch (err) {
+        console.log("Database fetch failed", err);
       }
       
       saveCooks(cooks);
@@ -228,4 +275,3 @@
   </script>
 </body>
 </html>
-

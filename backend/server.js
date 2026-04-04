@@ -1003,12 +1003,15 @@ app.patch('/api/admin/menus/:id', async (req, res) => {
   }
 });
 
+// ดึงรายชื่อ Cook ทั้งหมด
 app.get('/api/admin/cooks', async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT cook_id, username, status FROM cooks ORDER BY cook_id ASC');
+    // ดึง column name มาด้วย (ถ้าตอนแรกไม่ได้เพิ่ม ให้ไปรัน ALTER TABLE cooks ADD COLUMN name VARCHAR(100) ก่อนนะครับ)
+    const [rows] = await pool.query('SELECT cook_id, username, name, status FROM cooks ORDER BY cook_id ASC');
     res.json(rows.map((c) => ({
       id: `CK-${String(c.cook_id).padStart(2, '0')}`,
-      name: c.username,
+      name: c.name || c.username, // ถ้าไม่มีชื่อให้ใช้ username แทน
+      username: c.username,
       shift: 'Morning',
       status: c.status === 'ACTIVE' ? 'Active' : 'Inactive'
     })));
@@ -1017,14 +1020,18 @@ app.get('/api/admin/cooks', async (req, res) => {
   }
 });
 
+// เพิ่ม Cook ใหม่
 app.post('/api/admin/cooks', async (req, res) => {
   try {
-    const { name, status = 'Active' } = req.body || {};
-    if (!name) return res.status(400).json({ error: 'name is required' });
+    const { name, username, password, status = 'Active' } = req.body || {};
+    if (!username) return res.status(400).json({ error: 'Username is required' });
+    
     const dbStatus = String(status).toLowerCase() === 'active' ? 'ACTIVE' : 'DISABLED';
+    const pass = password || '1234'; // ถ่าไม่ใส่รหัส ให้ค่าเริ่มต้นเป็น 1234
+
     const [result] = await pool.query(
-      'INSERT INTO cooks (username, password, status) VALUES (?, ?, ?)',
-      [name, '1234', dbStatus]
+      'INSERT INTO cooks (username, name, password, status) VALUES (?, ?, ?, ?)',
+      [username, name || username, pass, dbStatus]
     );
     res.json({ status: 'success', cook_id: result.insertId });
   } catch (err) {
@@ -1032,13 +1039,33 @@ app.post('/api/admin/cooks', async (req, res) => {
   }
 });
 
+// แก้ไข / เปิด-ปิด สถานะ Cook
 app.patch('/api/admin/cooks/:id', async (req, res) => {
   try {
-    const cookId = Number(req.params.id);
+    // ตัดคำว่า CK- ออกเพื่อให้เหลือแต่ตัวเลข ID
+    const cookId = Number(String(req.params.id).replace('CK-', ''));
     if (!cookId) return res.status(400).json({ error: 'Invalid cook id' });
-    const { name, status = 'Active' } = req.body || {};
-    const dbStatus = String(status).toLowerCase() === 'active' ? 'ACTIVE' : 'DISABLED';
-    await pool.query('UPDATE cooks SET username = ?, status = ? WHERE cook_id = ?', [name, dbStatus, cookId]);
+
+    const { name, username, password, status } = req.body || {};
+    
+    let query = 'UPDATE cooks SET ';
+    let params = [];
+    let updates = [];
+
+    if (name !== undefined) { updates.push('name = ?'); params.push(name); }
+    if (username !== undefined) { updates.push('username = ?'); params.push(username); }
+    if (password && password.trim() !== '') { updates.push('password = ?'); params.push(password); }
+    if (status !== undefined) { 
+        const dbStatus = String(status).toLowerCase() === 'active' ? 'ACTIVE' : 'DISABLED';
+        updates.push('status = ?'); params.push(dbStatus); 
+    }
+
+    if (updates.length === 0) return res.json({ status: 'success', message: 'No changes' });
+
+    query += updates.join(', ') + ' WHERE cook_id = ?';
+    params.push(cookId);
+
+    await pool.query(query, params);
     res.json({ status: 'success' });
   } catch (err) {
     res.status(500).json({ error: err.message });
