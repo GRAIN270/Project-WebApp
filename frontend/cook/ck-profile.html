@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="cupcake">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cook Profile</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="min-h-screen flex flex-col bg-base-200 text-base-content">
+  <div class="navbar sticky top-0 z-50 bg-[#efe5d7]/95 backdrop-blur border-b border-[#d8ccb9] px-3 lg:px-8 min-h-16 shadow-sm">
+    <div class="flex-1 items-center gap-3">
+      <a href="/frontend/cook/ck-dsb.html" class="btn btn-ghost btn-circle">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </a>
+      <a class="text-2xl lg:text-3xl font-extrabold tracking-tight text-orange-600">Cook Profile</a>
+    </div>
+    <div class="flex-none gap-2">
+      <span id="cookBadge" class="badge badge-warning hidden sm:inline-flex"></span>
+      <button onclick="logoutStaff()" class="btn btn-sm btn-error rounded-full">Logout</button>
+    </div>
+  </div>
+
+  <div class="flex-1 max-w-xl mx-auto w-full p-6 space-y-6">
+    <div class="card bg-base-100 shadow-xl border border-base-300 rounded-3xl">
+      <div class="card-body p-6 lg:p-8">
+        <h2 class="text-2xl font-bold text-center text-orange-600 mb-4">Edit Profile</h2>
+        
+        <form id="profileForm" class="space-y-4">
+          <div class="form-control">
+            <label class="label"><span class="label-text font-semibold">Name </span></label>
+            <input type="text" id="profName" class="input input-bordered w-full" placeholder="Ex. Chef John" />
+          </div>
+          
+          <div class="form-control">
+            <label class="label"><span class="label-text font-semibold">Username </span></label>
+            <input type="text" id="profUser" class="input input-bordered w-full" placeholder="Username" />
+          </div>
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text font-semibold">New Password</span>
+              <span class="label-text-alt text-base-content/50"></span>
+            </label>
+            <input type="password" id="profPass" class="input input-bordered w-full" placeholder="••••••••" />
+          </div>
+
+          <div class="form-control mt-6">
+            <button type="submit" class="btn bg-orange-600 hover:bg-orange-700 text-white rounded-full text-lg">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="../app.js"></script>
+  <script>
+    const session = requireStaff("cook");
+    const badge = document.getElementById("cookBadge");
+    if (session) {
+      badge.textContent = `Cook: ${session.staff_id || session.name || "CK"}`;
+      badge.classList.remove("hidden");
+    }
+
+    document.getElementById('profileForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('profName').value;
+      const username = document.getElementById('profUser').value;
+      const password = document.getElementById('profPass').value;
+
+      console.log('--- Data to Save ---');
+      console.log('Name:', name);
+      console.log('Username:', username);
+      console.log('Password:', password);
+      
+      alert('ปุ่ม Save ทำงานแล้ว! (รอเชื่อมต่อ API)');
+      // TODO: ใส่ Logic การ fetch ยิง API ไปบันทึกข้อมูลที่นี่
+    });
+  </script>
+</body>
+</html>
