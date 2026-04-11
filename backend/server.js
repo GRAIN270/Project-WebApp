@@ -1122,6 +1122,30 @@ app.get('/api/admin/reports/actual', async (req, res) => {
   res.json(rows);
 });
 
+// เพิ่มให้top menu link กับ cook_id
+app.get('/api/cook/top-menu/:cook_id', async (req, res) => {
+  try {
+    // Clean 'CK-01' prefix to get numeric ID for database query
+    const cookId = Number(String(req.params.cook_id).replace('CK-', ''));
+
+    if (!cookId) return res.status(400).json({ error: 'Invalid cook id' });
+
+    const [rows] = await pool.query(
+          `SELECT menu_name, SUM(quantity) as total_qty
+       FROM order_item
+       WHERE cook_id = ? AND item_status IN ('READY', 'SERVED')
+       GROUP BY menu_id, menu_name
+       ORDER BY total_qty DESC
+       LIMIT 1`,
+      [cookId]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(3000, () => {
   console.log('Hell DB API is fully operational on port 3000');
   console.log(`Serving UI from: ${path.join(webRootDir, 'frontend')}`);

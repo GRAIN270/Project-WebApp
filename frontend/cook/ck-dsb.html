@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="en" data-theme="cupcake">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,12 +8,14 @@
   <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
+
 <body class="min-h-screen flex flex-col bg-base-200 text-base-content">
-  <div class="navbar sticky top-0 z-50 bg-[#efe5d7]/95 backdrop-blur border-b border-[#d8ccb9] px-3 lg:px-8 min-h-16 shadow-sm">
+  <div
+    class="navbar sticky top-0 z-50 bg-[#efe5d7]/95 backdrop-blur border-b border-[#d8ccb9] px-3 lg:px-8 min-h-16 shadow-sm">
     <div class="flex-1 items-center gap-3">
       <a class="text-2xl lg:text-3xl font-extrabold tracking-tight text-orange-600">Foodie House Cook</a>
     </div>
-<div class="flex-none gap-2">
+    <div class="flex-none gap-2">
       <span id="cookBadge" class="badge badge-warning hidden sm:inline-flex"></span>
       <button onclick="logoutStaff()" class="btn btn-sm btn-error rounded-full">Logout</button>
     </div>
@@ -24,9 +27,11 @@
         <div class="card-body p-6 lg:p-8">
           <p class="uppercase tracking-widest text-sm text-amber-200">Kitchen Panel</p>
           <h1 class="text-3xl md:text-5xl font-extrabold">Manage orders fast</h1>
-          <p class="text-white/80 max-w-2xl mt-3">View incoming items, update cooking status, and keep kitchen flow smooth.</p>
+          <p class="text-white/80 max-w-2xl mt-3">View incoming items, update cooking status, and keep kitchen flow
+            smooth.</p>
           <div class="mt-5">
-            <a href="/frontend/cook/ck-od.html" class="btn bg-white text-orange-900 border-0 rounded-full">Open Cook Queue</a>
+            <a href="/frontend/cook/ck-od.html" class="btn bg-white text-orange-900 border-0 rounded-full">Open Cook
+              Queue</a>
           </div>
         </div>
       </div>
@@ -56,7 +61,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div class="card bg-base-100 border border-base-300 shadow-sm rounded-3xl">
         <div class="card-body p-5">
-          <p class="text-sm text-base-content/60">Top Menu in Queue</p>
+          <p class="text-sm text-base-content/60">Top Menu</p>
           <h2 id="topMenu" class="text-2xl font-extrabold text-orange-600 truncate">-</h2>
           <p id="topMenuQty" class="text-xs text-base-content/60 mt-1">0 items</p>
         </div>
@@ -154,20 +159,21 @@
 
         const activeOrders = todayOrders.filter(o => ['PENDING', 'COOKING', 'SERVING'].includes(o.status));
         document.getElementById("activeOrders").textContent = String(activeOrders.length);
+        // แก้ฟังชัน dashboard ของ top menu
+        try {
+          const personalTop = await apiGet(`/api/cook/top-menu/${session.staff_id}`);
 
-        const menuCount = {};
-        [...pending, ...cooking, ...ready].forEach((i) => {
-          const name = i.menu_name || i.name || '-';
-          menuCount[name] = (menuCount[name] || 0) + Number(i.quantity || i.qty || 1);
-        });
-        let top = '-';
-        let max = 0;
-        Object.keys(menuCount).forEach((k) => {
-          if (menuCount[k] > max) { max = menuCount[k]; top = k; }
-        });
-        document.getElementById("topMenu").textContent = top;
-        document.getElementById("topMenuQty").textContent = `${max} items`;
-
+          if (personalTop && personalTop.length > 0) {
+            document.getElementById("topMenu").textContent = personalTop[0].menu_name;
+            document.getElementById("topMenuQty").textContent = `${personalTop[0].total_qty} items served by you`;
+          } else {
+            document.getElementById("topMenu").textContent = "No items served";
+            document.getElementById("topMenuQty").textContent = "0 items";
+          }
+        } catch (topErr) {
+          console.warn("Personal top menu error:", topErr.message);
+        }
+        ////////////////////////////
         const syncText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         document.getElementById("lastSyncText").textContent = `Last sync: ${syncText}`;
 
@@ -181,15 +187,15 @@
         const alertBody = document.getElementById('alertBody');
         alertBody.innerHTML = alertRows.length
           ? alertRows.map((i) => {
-              const o = i._order || {};
-              return `<tr>
+            const o = i._order || {};
+            return `<tr>
                 <td>#${o.id || '-'}</td>
                 <td>${o.table_id || '-'}</td>
                 <td>${i.name || '-'}</td>
                 <td>${i.wait} min</td>
                 <td>${i.item_status}</td>
               </tr>`;
-            }).join('')
+          }).join('')
           : '<tr><td colspan="5" class="opacity-50">No critical queue right now.</td></tr>';
 
         const tbody = document.getElementById("reviewBody");
@@ -206,4 +212,5 @@
     setInterval(updateDashboard, 6000);
   </script>
 </body>
+
 </html>
