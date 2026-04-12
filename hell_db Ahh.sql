@@ -38,8 +38,8 @@ CREATE TABLE `admin` (
 --
 
 INSERT INTO `admin` (`admin_id`, `username`, `password`) VALUES
-(1, 'Admin', '1234'),
-(2, 'admin01', '1234');
+(1, 'Admin', '$2b$10$7lpsRIVFtrlc31tY7KU6qe0hPdiaNtaweOSa8Q4clT.2B97rl20Uy'),
+(2, 'admin01', '$2b$10$7lpsRIVFtrlc31tY7KU6qe0hPdiaNtaweOSa8Q4clT.2B97rl20Uy');
 
 -- --------------------------------------------------------
 
@@ -73,15 +73,18 @@ CREATE TABLE `cooks` (
   `cook_id` int(11) NOT NULL,
   `username` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `status` enum('ACTIVE','DISABLED') DEFAULT 'ACTIVE'
+  `firstname` varchar(100) DEFAULT NULL,
+  `lastname` varchar(100) DEFAULT NULL,
+  `status` enum('ACTIVE','DISABLED') DEFAULT 'ACTIVE',
+  `join_date` date DEFAULT (CURRENT_DATE)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `cooks`
 --
 
-INSERT INTO `cooks` (`cook_id`, `username`, `password`, `status`) VALUES
-(1, 'Cook', '1234', 'ACTIVE');
+INSERT INTO `cooks` (`cook_id`, `username`, `password`, `firstname`, `lastname`, `status`, `join_date`) VALUES
+(1, 'Cook', '$2b$10$7lpsRIVFtrlc31tY7KU6qe0hPdiaNtaweOSa8Q4clT.2B97rl20Uy', 'Chef', 'Master', 'ACTIVE', '2026-03-31');
 
 -- --------------------------------------------------------
 

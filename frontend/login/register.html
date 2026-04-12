@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="cupcake">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Foodie House</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-[#f8f9fa] p-4 text-base-content">
+  <div class="max-w-md w-full bg-white rounded-[2rem] shadow-xl border border-gray-100 p-8 space-y-6">
+    <div class="text-center">
+      <h1 class="text-3xl font-extrabold text-orange-600 mb-2">Foodie House</h1>
+      <h2 class="text-xl font-bold text-gray-800">Create an Account</h2>
+      <p class="text-gray-500 text-sm mt-1">Sign up as a new chef member</p>
+    </div>
+
+    <form id="registerForm" class="space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="form-control">
+          <label class="label"><span class="label-text font-bold text-gray-700">First name</span></label>
+          <input type="text" id="reg-fname" placeholder="First name" class="input input-bordered w-full rounded-xl focus:border-orange-500" required />
+        </div>
+        <div class="form-control">
+          <label class="label"><span class="label-text font-bold text-gray-700">Last name</span></label>
+          <input type="text" id="reg-lname" placeholder="Last name" class="input input-bordered w-full rounded-xl focus:border-orange-500" required />
+        </div>
+      </div>
+
+      <div class="form-control">
+        <label class="label"><span class="label-text font-bold text-gray-700">Username</span></label>
+        <input type="text" id="reg-user" placeholder="Choose a username" class="input input-bordered w-full rounded-xl focus:border-orange-500" required />
+      </div>
+
+      <div class="form-control">
+        <label class="label"><span class="label-text font-bold text-gray-700">Password</span></label>
+        <input type="password" id="reg-pass" placeholder="••••••••" class="input input-bordered w-full rounded-xl focus:border-orange-500" required />
+      </div>
+
+      <div class="form-control">
+        <label class="label"><span class="label-text font-bold text-gray-700">Confirm Password</span></label>
+        <input type="password" id="reg-confirm" placeholder="••••••••" class="input input-bordered w-full rounded-xl focus:border-orange-500" required />
+      </div>
+
+      <div id="error-msg" class="text-error text-sm text-center hidden font-semibold"></div>
+
+      <button type="submit" class="btn w-full bg-orange-600 hover:bg-orange-700 text-white rounded-xl border-none mt-6 text-lg">
+        Register
+      </button>
+    </form>
+
+    <div class="text-center mt-6 text-sm text-gray-600">
+      Already have an account? <a href="staff-login.html" class="text-orange-600 font-bold hover:underline">Login here</a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const fname = document.getElementById('reg-fname').value;
+      const lname = document.getElementById('reg-lname').value;
+      const user = document.getElementById('reg-user').value;
+      const pass = document.getElementById('reg-pass').value;
+      const confirm = document.getElementById('reg-confirm').value;
+      const errBox = document.getElementById('error-msg');
+
+      // เช็คว่ากรอกรหัสผ่าน 2 ช่องตรงกันไหม
+      if (pass !== confirm) {
+        errBox.textContent = "Passwords do not match!";
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      errBox.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firstname: fname, lastname: lname, username: user, password: pass })
+        });
+        
+        const data = await res.json();
+        
+        if (!res.ok) {
+          errBox.textContent = data.error || "Registration failed";
+          errBox.classList.remove('hidden');
+        } else {
+          alert('Registration successful! Please login with your new account.');
+          window.location.href = 'staff-login.html'; 
+        }
+      } catch (err) {
+        errBox.textContent = "Server connection error";
+        errBox.classList.remove('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
