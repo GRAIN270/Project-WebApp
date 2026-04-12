@@ -1,6 +1,7 @@
 ﻿const express = require('express');
 const mysql = require('mysql2/promise');
 const path = require('path');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 app.use(express.json());
@@ -17,7 +18,7 @@ const pool = mysql.createPool({
   port: Number(process.env.DB_PORT || 3306),
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASS || '',
-  database: process.env.DB_NAME || 'hell_db',
+  database: process.env.DB_NAME || 'hell_db Ahh',
   waitForConnections: true,
   connectionLimit: 10
 });
@@ -146,33 +147,43 @@ async function authenticateStaff({ username, password, role }) {
   const targetRole = String(role || '').trim().toLowerCase();
   if (!user || !pass) return null;
 
+  // 1. เช็ค Login ของ Cook
   if (!targetRole || targetRole === 'cook') {
     const [cookRows] = await pool.query(
-      'SELECT cook_id, username, status FROM cooks WHERE username = ? AND password = ? LIMIT 1',
-      [user, pass]
+      'SELECT cook_id, username, password, status FROM cooks WHERE username = ? LIMIT 1',
+      [user]
     );
     const cook = cookRows[0];
     if (cook && String(cook.status || '').toUpperCase() === 'ACTIVE') {
-      return {
-        role: 'cook',
-        staff_id: `CK-${String(cook.cook_id).padStart(2, '0')}`,
-        name: cook.username
-      };
+      // ใช้ bcrypt เทียบรหัสผ่าน
+      const isMatch = await bcrypt.compare(pass, cook.password);
+      if (isMatch) {
+        return {
+          role: 'cook',
+          staff_id: `CK-${String(cook.cook_id).padStart(2, '0')}`,
+          name: cook.username
+        };
+      }
     }
   }
 
+  // 2. เช็ค Login ของ Admin
   if (!targetRole || targetRole === 'admin') {
     const [adminRows] = await pool.query(
-      'SELECT admin_id, username FROM admin WHERE username = ? AND password = ? LIMIT 1',
-      [user, pass]
+      'SELECT admin_id, username, password FROM admin WHERE username = ? LIMIT 1',
+      [user]
     );
     const admin = adminRows[0];
     if (admin) {
-      return {
-        role: 'admin',
-        staff_id: `AD-${String(admin.admin_id).padStart(2, '0')}`,
-        name: admin.username
-      };
+      // ใช้ bcrypt เทียบรหัสผ่าน
+      const isMatch = await bcrypt.compare(pass, admin.password);
+      if (isMatch) {
+        return {
+          role: 'admin',
+          staff_id: `AD-${String(admin.admin_id).padStart(2, '0')}`,
+          name: admin.username
+        };
+      }
     }
   }
 
@@ -1020,18 +1031,21 @@ app.get('/api/admin/cooks', async (req, res) => {
   }
 });
 
-// เพิ่ม Cook ใหม่
+// เพิ่ม Cook ใหม่ (โดย Admin)
 app.post('/api/admin/cooks', async (req, res) => {
   try {
     const { name, username, password, status = 'Active' } = req.body || {};
     if (!username) return res.status(400).json({ error: 'Username is required' });
     
     const dbStatus = String(status).toLowerCase() === 'active' ? 'ACTIVE' : 'DISABLED';
-    const pass = password || '1234'; // ถ่าไม่ใส่รหัส ให้ค่าเริ่มต้นเป็น 1234
+    const pass = password || '1234'; 
+
+    // 🔥 เข้ารหัสผ่านเริ่มต้นทันทีที่แอดมินสร้าง
+    const hashedPass = await bcrypt.hash(pass, 10);
 
     const [result] = await pool.query(
       'INSERT INTO cooks (username, name, password, status) VALUES (?, ?, ?, ?)',
-      [username, name || username, pass, dbStatus]
+      [username, name || username, hashedPass, dbStatus]
     );
     res.json({ status: 'success', cook_id: result.insertId });
   } catch (err) {
@@ -1150,3 +1164,35 @@ app.listen(3000, () => {
   console.log('Hell DB API is fully operational on port 3000');
   console.log(`Serving UI from: ${path.join(webRootDir, 'frontend')}`);
 });
+
+// หน้า Register ให้ Cook มากดยืนยันไอดีและตั้งรหัสผ่านเอง
+app.post('/api/register', async (req, res) => {
+  try {
+    const { firstname, lastname, username, password } = req.body;
+    
+    if (!username || !password || !firstname || !lastname) {
+      return res.status(400).json({ error: 'Please fill all fields' });
+    }
+
+    // 1. เช็คว่าแอดมินได้สร้าง ID (Username) นี้ไว้ให้ในระบบหรือยัง?
+    const [existingUser] = await pool.query('SELECT * FROM cooks WHERE username = ?', [username]);
+    if (existingUser.length === 0) {
+      return res.status(400).json({ error: 'ไม่พบ ID นี้ในระบบ กรุณาติดต่อ Admin ให้สร้าง ID ให้ก่อนครับ' });
+    }
+
+    // 2. 🔥 เข้ารหัสผ่านที่ Cook ตั้งเอง
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 3. ทำการอัปเดต (UPDATE) ข้อมูลลงไปในไอดีที่แอดมินสร้างไว้
+    await pool.query(
+      'UPDATE cooks SET password = ?, firstname = ?, lastname = ?, join_date = CURDATE() WHERE username = ?',
+      [hashedPassword, firstname, lastname, username]
+    );
+
+    res.json({ status: 'success' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
