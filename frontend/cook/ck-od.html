@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" data-theme="cupcake">
 <head>
   <meta charset="UTF-8" />
@@ -120,7 +120,8 @@
         PENDING: '<span class="badge badge-sm badge-warning">Pending</span>',
         COOKING: '<span class="badge badge-sm badge-info">Cooking</span>',
         READY: '<span class="badge badge-sm badge-success">Ready</span>',
-        SERVED: '<span class="badge badge-sm">Served</span>'
+        SERVED: '<span class="badge badge-sm">Served</span>',
+        CANCELLED: '<span class="badge badge-sm badge-error">Cancelled</span>'
       };
       return map[status] || `<span class="badge badge-sm">${status}</span>`;
     }
@@ -147,11 +148,16 @@
 
     function buildOrderState(order) {
       const items = order.items || [];
+      const orderStatus = String(order?.status || '').toUpperCase();
       const hasPending = items.some(i => i.item_status === 'PENDING');
       const hasCooking = items.some(i => i.item_status === 'COOKING');
       const hasReady = items.some(i => i.item_status === 'READY');
       const allServed = items.length > 0 && items.every(i => i.item_status === 'SERVED');
-      return { hasPending, hasCooking, hasReady, allServed };
+      const isCancelled = orderStatus === 'CANCELLED';
+      const isDone = orderStatus === 'DONE' || allServed;
+      const isClosed = isCancelled || isDone;
+      const canCancel = !isClosed && hasPending && !hasCooking && !hasReady;
+      return { hasPending, hasCooking, hasReady, allServed, isCancelled, isDone, isClosed, canCancel };
     }
 
     async function renderOrders() {
@@ -172,21 +178,21 @@
         });
         const todayOrders = enrichedOrders.filter((o) => isToday(o.time));
 
-        document.getElementById('pendingCount').textContent = String(todayOrders.filter(o => o.hasPending && !o.allServed).length);
-        document.getElementById('cookingCount').textContent = String(todayOrders.filter(o => o.hasCooking && !o.allServed).length);
-        document.getElementById('readyCount').textContent = String(todayOrders.filter(o => o.hasReady && !o.allServed).length);
+        document.getElementById('pendingCount').textContent = String(todayOrders.filter(o => o.hasPending && !o.isClosed).length);
+        document.getElementById('cookingCount').textContent = String(todayOrders.filter(o => o.hasCooking && !o.isClosed).length);
+        document.getElementById('readyCount').textContent = String(todayOrders.filter(o => o.hasReady && !o.isClosed).length);
 
         let byStatus = [];
         if (currentFilter === 'HISTORY') {
-          byStatus = todayOrders.filter(o => o.allServed);
+          byStatus = todayOrders.filter(o => o.isClosed);
         } else if (currentFilter === 'all') {
-          byStatus = todayOrders.filter(o => !o.allServed);
+          byStatus = todayOrders.filter(o => !o.isClosed);
         } else if (currentFilter === 'PENDING') {
-          byStatus = todayOrders.filter(o => o.hasPending && !o.allServed);
+          byStatus = todayOrders.filter(o => o.hasPending && !o.isClosed);
         } else if (currentFilter === 'COOKING') {
-          byStatus = todayOrders.filter(o => o.hasCooking && !o.allServed);
+          byStatus = todayOrders.filter(o => o.hasCooking && !o.isClosed);
         } else if (currentFilter === 'READY') {
-          byStatus = todayOrders.filter(o => o.hasReady && !o.allServed);
+          byStatus = todayOrders.filter(o => o.hasReady && !o.isClosed);
         }
         const filtered = filterBySearch(byStatus);
 
@@ -219,14 +225,14 @@
               <td>${o.table_id || '-'}</td>
               <td>${timeText}</td>
               <td class="max-w-[420px] truncate" title="${itemSummary}">${itemSummary || '-'}</td>
-              <td>${badge('SERVED')}</td>
+              <td>${o.isCancelled ? badge('CANCELLED') : badge('SERVED')}</td>
             </tr>`;
           }).join('');
           return;
         }
 
         container.innerHTML = filtered.map((o) => {
-          const canUpdate = currentFilter !== 'HISTORY' && !o.allServed;
+          const canUpdate = currentFilter !== 'HISTORY' && !o.isClosed;
           const dt = o.time ? new Date(o.time) : null;
           const timeText = dt && !Number.isNaN(dt.getTime())
             ? dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -235,21 +241,22 @@
             <div class="rounded-lg bg-base-100 border border-base-300 p-2">
               <div class="flex items-center justify-between gap-2">
                 <div class="font-medium">${i.name || '-'}</div>
-                ${badge(i.item_status)}
+                ${o.isCancelled ? badge('CANCELLED') : badge(i.item_status)}
               </div>
               <div class="text-xs opacity-70">Qty: ${i.qty || 1}</div>
               ${i.note ? `<div class="text-xs opacity-70">Note: ${i.note}</div>` : ''}
               ${optionText(i)}
               <div class="mt-2 flex flex-wrap gap-1 justify-end">
-                ${i.item_status === 'PENDING' ? `<button class="btn btn-xs btn-warning text-white" onclick="updateItemStatus(${i.order_item_id}, 'COOKING')">Start Item</button>` : ''}
-                ${i.item_status === 'COOKING' ? `<button class="btn btn-xs btn-info text-white" onclick="updateItemStatus(${i.order_item_id}, 'READY')">Ready Item</button>` : ''}
-                ${i.item_status === 'READY' ? `<button class="btn btn-xs btn-success text-white" onclick="updateItemStatus(${i.order_item_id}, 'SERVED')">Serve Item</button>` : ''}
+                ${!o.isCancelled && i.item_status === 'PENDING' ? `<button class="btn btn-xs btn-warning text-white" onclick="updateItemStatus(${i.order_item_id}, 'COOKING')">Start Item</button>` : ''}
+                ${!o.isCancelled && i.item_status === 'COOKING' ? `<button class="btn btn-xs btn-info text-white" onclick="updateItemStatus(${i.order_item_id}, 'READY')">Ready Item</button>` : ''}
+                ${!o.isCancelled && i.item_status === 'READY' ? `<button class="btn btn-xs btn-success text-white" onclick="updateItemStatus(${i.order_item_id}, 'SERVED')">Serve Item</button>` : ''}
               </div>
             </div>
           `).join('');
 
           const actionButtons = canUpdate ? `
             <div class="mt-3 flex flex-wrap justify-end gap-2">
+              ${o.canCancel ? `<button class="btn btn-xs btn-error text-white" onclick="cancelOrder(${o.id})">Cancel Order</button>` : ''}
               ${o.hasPending ? `<button class="btn btn-xs btn-warning text-white" onclick="updateOrderStatus(${o.id}, 'PENDING', 'COOKING')">Start Order</button>` : ''}
               ${o.hasCooking ? `<button class="btn btn-xs btn-info text-white" onclick="updateOrderStatus(${o.id}, 'COOKING', 'READY')">Mark Cooking Ready</button>` : ''}
               ${o.hasReady ? `<button class="btn btn-xs btn-success text-white" onclick="updateOrderStatus(${o.id}, 'READY', 'SERVED')">Serve Order</button>` : ''}
@@ -262,10 +269,10 @@
                 <h3 class="font-bold">Order #${o.id || '-'}</h3>
                 <p class="text-sm text-base-content/50">Table ${o.table_id || '-'} · ${timeText}</p>
               </div>
-              <div class="flex flex-col items-end gap-1">${currentFilter === 'HISTORY' ? badge('SERVED') : urgency(o.waitMins)}</div>
+              <div class="flex flex-col items-end gap-1">${o.isCancelled ? badge('CANCELLED') : (currentFilter === 'HISTORY' ? badge('SERVED') : urgency(o.waitMins))}</div>
             </div>
             <div class="mt-3 rounded-xl bg-base-200 px-3 py-2">
-              <div class="text-xs opacity-70 mb-2">${currentFilter === 'HISTORY' ? `Served ${o.waitMins} min ago` : `Waiting: ${o.waitMins} min`}</div>
+              <div class="text-xs opacity-70 mb-2">${o.isCancelled ? `Cancelled ${o.waitMins} min ago` : (currentFilter === 'HISTORY' ? `Served ${o.waitMins} min ago` : `Waiting: ${o.waitMins} min`)}</div>
               <div class="space-y-2">${itemRows}</div>
             </div>
             ${actionButtons}
@@ -308,6 +315,17 @@
       }
     }
 
+    async function cancelOrder(orderId) {
+      const ok = confirm(`Cancel Order #${orderId}?`);
+      if (!ok) return;
+      try {
+        await apiSend(`/api/cook/orders/${orderId}/cancel`, 'PATCH', {});
+        await refreshNow();
+      } catch (err) {
+        alert(err.message || 'Cancel failed');
+      }
+    }
+
     function filterOrders(status) {
       currentFilter = status;
       document.querySelectorAll("[id^='filter-']").forEach((b) => {
@@ -323,6 +341,7 @@
     window.updateItemStatus = updateItemStatus;
     window.filterOrders = filterOrders;
     window.refreshNow = refreshNow;
+    window.cancelOrder = cancelOrder;
 
     refreshNow();
     setInterval(refreshNow, 6000);
