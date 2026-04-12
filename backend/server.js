@@ -792,6 +792,57 @@ app.patch('/api/cook/items/:id', async (req, res) => {
   }
 });
 
+app.patch('/api/cook/orders/:id/cancel', async (req, res) => {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const [orderRows] = await conn.query(
+      'SELECT order_id, status FROM orders WHERE order_id = ? LIMIT 1',
+      [req.params.id]
+    );
+    const order = orderRows[0];
+    if (!order) {
+      await conn.rollback();
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const currentStatus = String(order.status || '').toUpperCase();
+    if (currentStatus === 'DONE' || currentStatus === 'CANCELLED') {
+      await conn.rollback();
+      return res.status(400).json({ error: 'This order cannot be cancelled' });
+    }
+
+    const [itemRows] = await conn.query(
+      'SELECT item_status FROM order_item WHERE order_id = ?',
+      [req.params.id]
+    );
+    if (!itemRows.length) {
+      await conn.rollback();
+      return res.status(400).json({ error: 'Order has no items' });
+    }
+
+    const canCancel = itemRows.every((row) => String(row.item_status || '').toUpperCase() === 'PENDING');
+    if (!canCancel) {
+      await conn.rollback();
+      return res.status(400).json({ error: 'Only fully pending orders can be cancelled' });
+    }
+
+    await conn.query(
+      'UPDATE orders SET status = "CANCELLED" WHERE order_id = ?',
+      [req.params.id]
+    );
+
+    await conn.commit();
+    res.json({ message: 'Order cancelled' });
+  } catch (err) {
+    await conn.rollback();
+    res.status(500).json({ error: err.message });
+  } finally {
+    conn.release();
+  }
+});
+
 app.post('/api/admin/pay', async (req, res) => {
   const { order_id, total_payment, method } = req.body;
   try {
